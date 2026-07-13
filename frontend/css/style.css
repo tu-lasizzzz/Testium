@@ -45,7 +45,7 @@ main {
     border-radius: 4px;
     font-size: 1rem;
     outline: none;
-    transition: border-color 0.2s;
+    transition: border-color 0.2s, background-color 0.2s;
 }
 
 .method-select:focus, .url-input:focus {
@@ -60,6 +60,12 @@ main {
 
 .url-input {
     flex-grow: 1;
+}
+
+/* Error States for Inputs */
+.input-error {
+    border-color: #d32f2f !important;
+    background-color: #fffafa;
 }
 
 /* Buttons */
@@ -84,6 +90,12 @@ main {
 
 .btn.primary:hover {
     background-color: #004494;
+}
+
+.btn.primary:disabled {
+    background-color: #a0c4e8;
+    cursor: not-allowed;
+    transform: none; /* Prevent click animation when disabled */
 }
 
 .btn.secondary {
@@ -113,6 +125,7 @@ main {
     font-size: 0.875rem;
     margin-bottom: 1.5rem;
     padding-left: 125px; /* Aligned roughly with the URL input */
+    min-height: 1.2rem; /* Reserve space even when empty to prevent layout shift */
 }
 
 .hidden {
@@ -121,7 +134,7 @@ main {
 
 /* Tabs */
 .tabs-container {
-    margin-top: 2rem;
+    margin-top: 1rem;
     border: 1px solid #e0e0e0;
     border-radius: 4px;
     overflow: hidden;
