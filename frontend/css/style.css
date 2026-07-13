@@ -62,7 +62,7 @@ main {
     flex-grow: 1;
 }
 
-/* Error States for Inputs */
+/* Error States */
 .input-error {
     border-color: #d32f2f !important;
     background-color: #fffafa;
@@ -95,7 +95,7 @@ main {
 .btn.primary:disabled {
     background-color: #a0c4e8;
     cursor: not-allowed;
-    transform: none; /* Prevent click animation when disabled */
+    transform: none;
 }
 
 .btn.secondary {
@@ -124,12 +124,12 @@ main {
     color: #d32f2f;
     font-size: 0.875rem;
     margin-bottom: 1.5rem;
-    padding-left: 125px; /* Aligned roughly with the URL input */
-    min-height: 1.2rem; /* Reserve space even when empty to prevent layout shift */
+    padding-left: 125px;
+    min-height: 1.2rem;
 }
 
 .hidden {
-    display: none;
+    display: none !important;
 }
 
 /* Tabs */
@@ -213,12 +213,57 @@ main {
     outline: none;
 }
 
-/* Placeholders */
-.placeholder-box {
-    padding: 2rem;
-    text-align: center;
+/* Auth Styles */
+.auth-config {
+    margin-top: 1rem;
+    padding: 1.5rem;
     background-color: #f8f9fa;
-    border: 1px dashed #ccc;
     border-radius: 4px;
-    color: #666;
+    border: 1px solid #e0e0e0;
+}
+
+.auth-row {
+    display: flex;
+    gap: 1rem;
+    width: 100%;
+}
+
+.full-width {
+    width: 100%;
+}
+
+/* Body Styles */
+.body-type-selector {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.body-type-selector label {
+    cursor: pointer;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.body-config {
+    margin-top: 1rem;
+}
+
+.body-textarea {
+    width: 100%;
+    padding: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 0.95rem;
+    resize: vertical;
+}
+
+.body-textarea:focus {
+    border-color: #0056b3;
+    outline: none;
 }

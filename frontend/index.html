@@ -26,34 +26,105 @@
                 <input type="url" id="url-input" class="url-input" placeholder="https://example.com/api" required>
                 <button id="send-button" class="btn primary">Send</button>
             </div>
-            <div id="validation-message" class="validation-message hidden">Please enter a valid URL.</div>
+            <div id="validation-message" class="validation-message hidden"></div>
 
             <div class="tabs-container">
                 <div class="tabs">
                     <button class="tab-btn active" data-tab="params">Params</button>
+                    <button class="tab-btn" data-tab="auth">Auth</button>
                     <button class="tab-btn" data-tab="headers">Headers</button>
                     <button class="tab-btn" data-tab="body">Body</button>
                 </div>
                 <div class="tab-content-container">
+                    
+                    <!-- PARAMS TAB -->
                     <div id="params" class="tab-content active">
                         <div class="tab-header">
                             <h3>Query Parameters</h3>
                             <button id="add-param-btn" class="btn secondary">Add Parameter</button>
                         </div>
                         <div id="params-list" class="key-value-list">
-                            <!-- Dynamic parameter rows will be inserted here -->
+                            <!-- Dynamic parameter rows go here -->
                         </div>
                     </div>
+
+                    <!-- AUTH TAB -->
+                    <div id="auth" class="tab-content">
+                        <div class="tab-header">
+                            <h3>Authentication</h3>
+                            <select id="auth-type" class="method-select" style="width: 200px;">
+                                <option value="none">No Auth</option>
+                                <option value="bearer">Bearer Token</option>
+                                <option value="basic">Basic Auth</option>
+                                <option value="apikey">API Key</option>
+                            </select>
+                        </div>
+                        
+                        <div id="auth-bearer-config" class="auth-config hidden">
+                            <input type="text" id="auth-bearer-token" class="key-value-input full-width" placeholder="Token">
+                        </div>
+                        
+                        <div id="auth-basic-config" class="auth-config hidden">
+                            <div class="auth-row">
+                                <input type="text" id="auth-basic-username" class="key-value-input" placeholder="Username">
+                                <input type="password" id="auth-basic-password" class="key-value-input" placeholder="Password">
+                            </div>
+                        </div>
+                        
+                        <div id="auth-apikey-config" class="auth-config hidden">
+                            <div class="auth-row">
+                                <input type="text" id="auth-apikey-key" class="key-value-input" placeholder="Header Name (e.g., x-api-key)">
+                                <input type="text" id="auth-apikey-value" class="key-value-input" placeholder="Value">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- HEADERS TAB -->
                     <div id="headers" class="tab-content">
-                        <div class="placeholder-box">
-                            <p>Headers will be implemented in the next commit.</p>
+                        <div class="tab-header">
+                            <h3>Headers</h3>
+                            <button id="add-header-btn" class="btn secondary">Add Header</button>
+                        </div>
+                        <div id="headers-list" class="key-value-list">
+                            <!-- Dynamic header rows go here -->
                         </div>
                     </div>
+
+                    <!-- BODY TAB -->
                     <div id="body" class="tab-content">
-                        <div class="placeholder-box">
-                            <p>Body will be implemented in the next commit.</p>
+                        <div class="body-type-selector">
+                            <label><input type="radio" name="body-type" value="none" checked> None</label>
+                            <label><input type="radio" name="body-type" value="json"> JSON</label>
+                            <label><input type="radio" name="body-type" value="text"> Raw Text</label>
+                            <label><input type="radio" name="body-type" value="form-data"> Form Data</label>
+                            <label><input type="radio" name="body-type" value="urlencoded"> x-www-form-urlencoded</label>
+                        </div>
+                        
+                        <div id="body-json-config" class="body-config hidden">
+                            <textarea id="body-json-textarea" class="body-textarea" rows="8" placeholder="Enter JSON here..."></textarea>
+                        </div>
+                        
+                        <div id="body-text-config" class="body-config hidden">
+                            <textarea id="body-text-textarea" class="body-textarea" rows="8" placeholder="Enter raw text here..."></textarea>
+                        </div>
+                        
+                        <div id="body-formdata-config" class="body-config hidden">
+                            <div class="tab-header">
+                                <h3>Form Data</h3>
+                                <button id="add-formdata-btn" class="btn secondary">Add Field</button>
+                            </div>
+                            <div id="formdata-list" class="key-value-list"></div>
+                        </div>
+                        
+                        <div id="body-urlencoded-config" class="body-config hidden">
+                            <div class="tab-header">
+                                <h3>URL Encoded</h3>
+                                <button id="add-urlencoded-btn" class="btn secondary">Add Field</button>
+                            </div>
+                            <div id="urlencoded-list" class="key-value-list"></div>
                         </div>
                     </div>
+                    
                 </div>
             </div>
         </section>
