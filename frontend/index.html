@@ -13,6 +13,7 @@
     </header>
     
     <main>
+        <!-- REQUEST BUILDER -->
         <section class="request-builder">
             <div class="request-bar">
                 <select id="method-select" class="method-select">
@@ -37,18 +38,14 @@
                 </div>
                 <div class="tab-content-container">
                     
-                    <!-- PARAMS TAB -->
                     <div id="params" class="tab-content active">
                         <div class="tab-header">
                             <h3>Query Parameters</h3>
                             <button id="add-param-btn" class="btn secondary">Add Parameter</button>
                         </div>
-                        <div id="params-list" class="key-value-list">
-                            <!-- Dynamic parameter rows go here -->
-                        </div>
+                        <div id="params-list" class="key-value-list"></div>
                     </div>
 
-                    <!-- AUTH TAB -->
                     <div id="auth" class="tab-content">
                         <div class="tab-header">
                             <h3>Authentication</h3>
@@ -79,18 +76,14 @@
                         </div>
                     </div>
 
-                    <!-- HEADERS TAB -->
                     <div id="headers" class="tab-content">
                         <div class="tab-header">
                             <h3>Headers</h3>
                             <button id="add-header-btn" class="btn secondary">Add Header</button>
                         </div>
-                        <div id="headers-list" class="key-value-list">
-                            <!-- Dynamic header rows go here -->
-                        </div>
+                        <div id="headers-list" class="key-value-list"></div>
                     </div>
 
-                    <!-- BODY TAB -->
                     <div id="body" class="tab-content">
                         <div class="body-type-selector">
                             <label><input type="radio" name="body-type" value="none" checked> None</label>
@@ -125,6 +118,37 @@
                         </div>
                     </div>
                     
+                </div>
+            </div>
+        </section>
+
+        <!-- LOADING INDICATOR -->
+        <div id="loading-overlay" class="loading-overlay hidden">
+            <div class="spinner"></div>
+            <p>Sending request...</p>
+        </div>
+
+        <!-- RESPONSE VIEWER -->
+        <section id="response-section" class="response-section hidden">
+            <h2>Response</h2>
+            <div class="response-meta" id="response-meta">
+                <div class="meta-item">Status: <span id="res-status" class="badge"></span></div>
+                <div class="meta-item">Time: <span id="res-time" class="badge"></span></div>
+                <div class="meta-item">Size: <span id="res-size" class="badge"></span></div>
+            </div>
+
+            <div class="tabs-container">
+                <div class="tabs">
+                    <button class="res-tab-btn active" data-tab="res-body">Body</button>
+                    <button class="res-tab-btn" data-tab="res-headers">Headers</button>
+                </div>
+                <div class="tab-content-container">
+                    <div id="res-body" class="res-tab-content active">
+                        <pre id="res-body-content" class="response-body-text"></pre>
+                    </div>
+                    <div id="res-headers" class="res-tab-content">
+                        <div id="res-headers-content" class="headers-display-list"></div>
+                    </div>
                 </div>
             </div>
         </section>
