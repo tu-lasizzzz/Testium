@@ -2,14 +2,14 @@ const express = require('express');
 const router = express.Router();
 
 router.post('/', async (req, res) => {
-  const { method, url, headers, body } = req.body;
+  const { method, url, headers, body, bodyType } = req.body;
 
   // 1. Validate Input
   if (!url) {
     return res.status(400).json({ error: 'URL is required' });
   }
 
-  const validMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD'];
+  const validMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD', 'QUERY'];
   const requestMethod = method ? method.toUpperCase() : 'GET';
 
   if (!validMethods.includes(requestMethod)) {
@@ -25,19 +25,33 @@ router.post('/', async (req, res) => {
       headers: headers || {},
     };
 
-    // Only attach body if the HTTP method allows it
-    if (['POST', 'PUT', 'PATCH'].includes(requestMethod) && body) {
-      fetchOptions.body = typeof body === 'string' ? body : JSON.stringify(body);
+    // 3. Attach body if the HTTP method allows it
+    if (!['GET', 'HEAD'].includes(requestMethod) && body) {
+      if (bodyType === 'form-data' && typeof body === 'object') {
+        const formData = new FormData();
+        for (const key in body) {
+          formData.append(key, body[key]);
+        }
+        fetchOptions.body = formData;
+        
+        // Remove Content-Type header if user provided it, let fetch set boundary automatically
+        const cTypeKey = Object.keys(fetchOptions.headers).find(k => k.toLowerCase() === 'content-type');
+        if (cTypeKey && fetchOptions.headers[cTypeKey].includes('multipart/form-data')) {
+            delete fetchOptions.headers[cTypeKey];
+        }
+      } else {
+        fetchOptions.body = typeof body === 'string' ? body : JSON.stringify(body);
+      }
     }
 
-    // 3. Forward the request (using native fetch available in Node.js 18+)
+    // 4. Forward the request
     const response = await fetch(url, fetchOptions);
     
-    // 4. Calculate request time
+    // 5. Calculate request time
     const endTime = Date.now();
     const time = `${endTime - startTime} ms`;
 
-    // 5. Calculate response size
+    // 6. Calculate response size
     const responseBuffer = await response.arrayBuffer();
     const sizeInBytes = responseBuffer.byteLength;
     
@@ -50,14 +64,14 @@ router.post('/', async (req, res) => {
       size = `${(sizeInBytes / (1024 * 1024)).toFixed(2)} MB`;
     }
 
-    // Parse response body (try JSON first, fallback to plain text)
+    // Parse response body
     const textDecoder = new TextDecoder('utf-8');
     const responseText = textDecoder.decode(responseBuffer);
     let responseBody;
     try {
       responseBody = JSON.parse(responseText);
     } catch (e) {
-      responseBody = responseText; // If it's not valid JSON, return as string
+      responseBody = responseText;
     }
 
     // Extract headers
@@ -66,7 +80,7 @@ router.post('/', async (req, res) => {
       responseHeaders[key] = value;
     });
 
-    // 6. Return standard format
+    // 7. Return standard format
     res.status(200).json({
       status: response.status,
       statusText: response.statusText,
@@ -77,7 +91,6 @@ router.post('/', async (req, res) => {
     });
 
   } catch (error) {
-    // Handle invalid URLs, network failures, timeouts, etc.
     res.status(500).json({
       error: 'Failed to process request',
       details: error.message
