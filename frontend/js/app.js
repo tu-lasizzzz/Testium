@@ -11,21 +11,39 @@ document.addEventListener('DOMContentLoaded', () => {
     const paramsList = document.getElementById('params-list');
     const addParamBtn = document.getElementById('add-param-btn');
 
-    // 2. Tab Navigation Logic
+    // 2. UI Utilities (Validation & Error Handling)
+    function showError(element, message) {
+        if (element) {
+            element.classList.add('input-error');
+        }
+        validationMessage.textContent = message;
+        validationMessage.classList.remove('hidden');
+    }
+
+    function clearErrors() {
+        urlInput.classList.remove('input-error');
+        methodSelect.classList.remove('input-error');
+        validationMessage.classList.add('hidden');
+        validationMessage.textContent = '';
+    }
+
+    // Automatically remove error state when the user corrects the input
+    urlInput.addEventListener('input', clearErrors);
+    methodSelect.addEventListener('change', clearErrors);
+
+    // 3. Tab Navigation Logic
     tabButtons.forEach(button => {
         button.addEventListener('click', () => {
-            // Reset active states
             tabButtons.forEach(btn => btn.classList.remove('active'));
             tabContents.forEach(content => content.classList.remove('active'));
             
-            // Set active state for clicked tab
             button.classList.add('active');
             const targetTabId = button.getAttribute('data-tab');
             document.getElementById(targetTabId).classList.add('active');
         });
     });
 
-    // 3. Query Parameters Management
+    // 4. Query Parameters Management
     function createParamRow() {
         const row = document.createElement('div');
         row.className = 'key-value-row';
@@ -44,7 +62,6 @@ document.addEventListener('DOMContentLoaded', () => {
         removeBtn.className = 'btn danger remove-param-btn';
         removeBtn.textContent = 'Remove';
         
-        // Remove row when button is clicked
         removeBtn.addEventListener('click', () => {
             row.remove();
         });
@@ -60,12 +77,10 @@ document.addEventListener('DOMContentLoaded', () => {
         paramsList.appendChild(createParamRow());
     });
 
-    // Initialize UI with one empty parameter row
     paramsList.appendChild(createParamRow());
 
-    // 4. Request Building & Execution
+    // 5. Request Building & Execution
     
-    // Reads rows and serializes them into a URLSearchParams query string
     function buildQueryString() {
         const rows = document.querySelectorAll('.key-value-row');
         const params = new URLSearchParams();
@@ -74,7 +89,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const key = row.querySelector('.key-input').value.trim();
             const value = row.querySelector('.value-input').value.trim();
             
-            // Only include rows where the key is not empty
+            // Ignore rows where both key and value are empty
+            if (!key && !value) return;
+            
+            // Append valid keys (URLSearchParams naturally handles encoding & duplicate separators)
             if (key) {
                 params.append(key, value);
             }
@@ -85,75 +103,107 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function handleSendRequest() {
+        clearErrors();
+        
         const method = methodSelect.value;
         let url = urlInput.value.trim();
         
-        // Validation: Empty URL
+        // --- Input Validation ---
+        
         if (!url) {
-            validationMessage.textContent = "Please enter a valid URL.";
-            validationMessage.classList.remove('hidden');
+            showError(urlInput, "URL cannot be empty. Please enter a destination URL.");
             return;
         }
 
-        // Validation: Format URL
         try {
             new URL(url);
-            validationMessage.classList.add('hidden');
         } catch (e) {
-            validationMessage.textContent = "Invalid URL format. Please include http:// or https://";
-            validationMessage.classList.remove('hidden');
+            showError(urlInput, "Invalid URL format. Please include http:// or https:// (e.g., https://api.example.com).");
             return;
         }
 
-        // Combine base URL with Query Params from the UI
+        const validMethods = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'QUERY'];
+        if (!validMethods.includes(method)) {
+            showError(methodSelect, "Unsupported HTTP method selected.");
+            return;
+        }
+
+        // --- Execution Preparation ---
+        
+        // Prevent multiple rapid clicks while request is in progress
+        sendButton.disabled = true;
+        sendButton.textContent = 'Sending...';
+
+        // Safely combine base URL with Query Params
         const queryString = buildQueryString();
         let finalUrl;
         try {
             const urlObj = new URL(url);
-            
-            // Safely merge user-defined params with any params that were already in the typed URL
             const uiParams = new URLSearchParams(queryString);
             uiParams.forEach((val, key) => {
                 urlObj.searchParams.append(key, val);
             });
-            
             finalUrl = urlObj.toString();
         } catch (e) {
-            // Fallback just in case, though the URL constructor check above should prevent this
             finalUrl = url + queryString;
         }
 
-        console.log(`[Request Builder] Preparing to send ${method} request to: ${finalUrl}`);
+        console.log(`[Request Builder] Sending ${method} request to: ${finalUrl}`);
         
-        // Prepare request body for proxy
         const requestBody = {
             method: method,
             url: finalUrl,
             headers: {},
-            // Body will be implemented in later commits
         };
 
-        // Execute request to the proxy
         const proxyUrl = 'http://localhost:5000/proxy';
+        
+        // Implement 15-second timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000);
 
         try {
             const response = await fetch(proxyUrl, {
-                method: 'POST', // The proxy itself always expects a POST with instructions
+                method: 'POST', 
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(requestBody)
+                body: JSON.stringify(requestBody),
+                signal: controller.signal
             });
-
-            const responseData = await response.json();
             
-            // Log to console (UI viewer not built yet)
-            console.log('--- Proxy Response ---');
-            console.log(responseData);
-            console.log('----------------------');
+            clearTimeout(timeoutId);
+
+            // Handle Proxy-level errors (e.g., Target server down, invalid destination URL)
+            if (!response.ok) {
+                // Safely try to parse JSON error message from our Express proxy
+                const errorData = await response.json().catch(() => ({}));
+                const backendMsg = errorData.error || "Server unavailable or proxy failed.";
+                const details = errorData.details ? ` (${errorData.details})` : "";
+                
+                showError(null, `Request failed: ${backendMsg}${details}`);
+            } else {
+                const responseData = await response.json();
+                
+                console.log('--- Proxy Response ---');
+                console.log(responseData);
+                console.log('----------------------');
+            }
             
         } catch (error) {
-            console.error('Failed to send request via proxy:', error);
+            clearTimeout(timeoutId);
+            
+            // Handle client-level network errors and timeouts gracefully (no raw JS errors)
+            if (error.name === 'AbortError') {
+                showError(null, "Request timed out. The server took too long to respond.");
+            } else {
+                showError(null, "Network error. Please verify the backend proxy server is running.");
+            }
+            console.error('[Request Error]:', error);
+        } finally {
+            // Re-enable button after request completes or fails
+            sendButton.disabled = false;
+            sendButton.textContent = 'Send';
         }
     }
 
