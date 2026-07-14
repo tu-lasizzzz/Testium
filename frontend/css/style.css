@@ -10,26 +10,266 @@ body {
     line-height: 1.6;
     color: #333;
     background-color: #f4f7f6;
-    padding: 2rem;
+    padding: 0;
 }
 
 header {
-    margin-bottom: 2rem;
+    padding: 1rem 2rem;
     text-align: center;
+    background-color: #fff;
+    border-bottom: 1px solid #e0e0e0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
 }
 
-h1 {
+header h1 {
     color: #0056b3;
+    margin-bottom: 0.25rem;
+    font-size: 1.5rem;
+}
+
+header p {
+    font-size: 0.9rem;
+    color: #666;
     margin-bottom: 0.5rem;
 }
 
+.header-actions {
+    margin-top: 0.5rem;
+}
+
+/* App Container – Sidebar + Main Grid */
+#app-container {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    min-height: calc(100vh - 100px);
+}
+
+/* SIDEBAR */
+.sidebar {
+    background-color: #fff;
+    border-right: 1px solid #e0e0e0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar-section {
+    border-bottom: 1px solid #e0e0e0;
+    padding: 1rem;
+}
+
+.sidebar-section:last-child {
+    border-bottom: none;
+    flex-grow: 1;
+}
+
+.sidebar-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.sidebar-section-header h3 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #333;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.sidebar-actions {
+    display: flex;
+    gap: 0.35rem;
+}
+
+.sidebar-list {
+    max-height: 350px;
+    overflow-y: auto;
+}
+
+.empty-state {
+    color: #999;
+    font-size: 0.85rem;
+    font-style: italic;
+    padding: 0.5rem 0;
+}
+
+/* Collection Items */
+.collection-item {
+    margin-bottom: 0.5rem;
+    border: 1px solid #e8e8e8;
+    border-radius: 4px;
+    background-color: #fafafa;
+}
+
+.collection-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 0.6rem;
+    cursor: pointer;
+    gap: 0.25rem;
+}
+
+.collection-header:hover {
+    background-color: #f0f4ff;
+}
+
+.collection-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #333;
+    flex-grow: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.collection-actions {
+    display: flex;
+    gap: 0.2rem;
+    flex-shrink: 0;
+}
+
+.collection-actions button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.8rem;
+    padding: 0.15rem 0.3rem;
+    border-radius: 3px;
+    color: #888;
+    transition: background-color 0.15s;
+}
+
+.collection-actions button:hover {
+    background-color: #e0e0e0;
+    color: #333;
+}
+
+.collection-requests {
+    padding: 0 0.5rem 0.5rem;
+    display: none;
+}
+
+.collection-requests.expanded {
+    display: block;
+}
+
+/* Saved Request Item */
+.saved-request-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: background-color 0.15s;
+}
+
+.saved-request-item:hover {
+    background-color: #e8f0fe;
+}
+
+.saved-request-item .method-badge {
+    font-weight: 700;
+    font-size: 0.7rem;
+    padding: 0.1rem 0.35rem;
+    border-radius: 3px;
+    flex-shrink: 0;
+    min-width: 38px;
+    text-align: center;
+}
+
+.saved-request-item .request-name {
+    flex-grow: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #444;
+}
+
+.saved-request-item .delete-request-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #c92a2a;
+    font-size: 0.8rem;
+    padding: 0.15rem 0.3rem;
+    border-radius: 3px;
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+
+.saved-request-item:hover .delete-request-btn {
+    opacity: 1;
+}
+
+/* History Items */
+.history-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.6rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: background-color 0.15s;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.history-item:last-child {
+    border-bottom: none;
+}
+
+.history-item:hover {
+    background-color: #e8f0fe;
+}
+
+.history-item .method-badge {
+    font-weight: 700;
+    font-size: 0.7rem;
+    padding: 0.1rem 0.35rem;
+    border-radius: 3px;
+    flex-shrink: 0;
+    min-width: 38px;
+    text-align: center;
+}
+
+.history-item .history-url {
+    flex-grow: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #444;
+}
+
+.history-item .history-time {
+    color: #999;
+    font-size: 0.75rem;
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+/* Method Badge Colors */
+.method-badge.get    { background-color: #d3f9d8; color: #2b8a3e; }
+.method-badge.post   { background-color: #d0ebff; color: #1864ab; }
+.method-badge.put    { background-color: #fff3bf; color: #e67700; }
+.method-badge.patch  { background-color: #fff3bf; color: #e67700; }
+.method-badge.delete { background-color: #ffe3e3; color: #c92a2a; }
+.method-badge.query  { background-color: #e5dbff; color: #7048e8; }
+
+/* MAIN CONTENT */
 main {
-    max-width: 900px;
-    margin: 0 auto;
+    max-width: none;
+    margin: 0;
     background: #fff;
     padding: 2rem;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    border-radius: 0;
+    box-shadow: none;
+    overflow-y: auto;
 }
 
 /* Request Bar */
@@ -76,6 +316,7 @@ main {
     cursor: pointer;
     transition: background-color 0.2s, transform 0.1s;
     outline: none;
+    white-space: nowrap;
 }
 
 .btn:active {
@@ -116,6 +357,11 @@ main {
 
 .btn.danger:hover {
     background-color: #ffc9c9;
+}
+
+.btn-sm {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.8rem;
 }
 
 .validation-message {
@@ -423,4 +669,151 @@ main {
 
 @keyframes spin {
     to { transform: rotate(360deg); }
+}
+
+/* -------------------------------------
+   MODAL STYLES 
+   ------------------------------------- */
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    animation: modalFadeIn 0.2s ease-out;
+}
+
+.modal.modal-sm {
+    max-width: 420px;
+}
+
+@keyframes modalFadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.modal-header h2 {
+    font-size: 1.15rem;
+    font-weight: 600;
+}
+
+.modal-body {
+    padding: 1.5rem;
+    overflow-y: auto;
+    flex-grow: 1;
+}
+
+.modal-body label {
+    font-weight: 500;
+    font-size: 0.9rem;
+    margin-bottom: 0.35rem;
+    display: block;
+    color: #555;
+}
+
+.modal-hint {
+    background-color: #e8f0fe;
+    color: #1a56db;
+    padding: 0.75rem 1rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+}
+
+.modal-hint code {
+    background-color: #c7d9f5;
+    padding: 0.1rem 0.35rem;
+    border-radius: 3px;
+    font-family: monospace;
+}
+
+.modal-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #e0e0e0;
+    text-align: right;
+}
+
+/* Environment Variable Row */
+.env-var-row {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    align-items: center;
+}
+
+.env-var-row input {
+    flex: 1;
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 0.9rem;
+}
+
+.env-var-row input:focus {
+    border-color: #0056b3;
+    outline: none;
+}
+
+.env-vars-list {
+    margin-bottom: 1rem;
+}
+
+/* -------------------------------------
+   RESPONSIVE DESIGN 
+   ------------------------------------- */
+
+@media (max-width: 768px) {
+    #app-container {
+        grid-template-columns: 1fr;
+    }
+
+    .sidebar {
+        border-right: none;
+        border-bottom: 1px solid #e0e0e0;
+        max-height: 300px;
+    }
+
+    .request-bar {
+        flex-wrap: wrap;
+    }
+
+    .method-select {
+        width: 100%;
+    }
+
+    .response-meta {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .body-type-selector {
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
 }

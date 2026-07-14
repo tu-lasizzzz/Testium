@@ -10,149 +10,221 @@
     <header>
         <h1>Postman Lite</h1>
         <p>Lightweight browser-based API testing platform.</p>
-    </header>
-    
-    <main>
-        <!-- REQUEST BUILDER -->
-        <section class="request-builder">
-            <div class="request-bar">
-                <select id="method-select" class="method-select">
-                    <option value="GET">GET</option>
-                    <option value="POST">POST</option>
-                    <option value="PUT">PUT</option>
-                    <option value="PATCH">PATCH</option>
-                    <option value="DELETE">DELETE</option>
-                    <option value="QUERY">QUERY</option>
-                </select>
-                <input type="url" id="url-input" class="url-input" placeholder="https://example.com/api" required>
-                <button id="send-button" class="btn primary">Send</button>
-            </div>
-            <div id="validation-message" class="validation-message hidden"></div>
-
-            <div class="tabs-container">
-                <div class="tabs">
-                    <button class="tab-btn active" data-tab="params">Params</button>
-                    <button class="tab-btn" data-tab="auth">Auth</button>
-                    <button class="tab-btn" data-tab="headers">Headers</button>
-                    <button class="tab-btn" data-tab="body">Body</button>
-                </div>
-                <div class="tab-content-container">
-                    
-                    <div id="params" class="tab-content active">
-                        <div class="tab-header">
-                            <h3>Query Parameters</h3>
-                            <button id="add-param-btn" class="btn secondary">Add Parameter</button>
-                        </div>
-                        <div id="params-list" class="key-value-list"></div>
-                    </div>
-
-                    <div id="auth" class="tab-content">
-                        <div class="tab-header">
-                            <h3>Authentication</h3>
-                            <select id="auth-type" class="method-select" style="width: 200px;">
-                                <option value="none">No Auth</option>
-                                <option value="bearer">Bearer Token</option>
-                                <option value="basic">Basic Auth</option>
-                                <option value="apikey">API Key</option>
-                            </select>
-                        </div>
-                        
-                        <div id="auth-bearer-config" class="auth-config hidden">
-                            <input type="text" id="auth-bearer-token" class="key-value-input full-width" placeholder="Token">
-                        </div>
-                        
-                        <div id="auth-basic-config" class="auth-config hidden">
-                            <div class="auth-row">
-                                <input type="text" id="auth-basic-username" class="key-value-input" placeholder="Username">
-                                <input type="password" id="auth-basic-password" class="key-value-input" placeholder="Password">
-                            </div>
-                        </div>
-                        
-                        <div id="auth-apikey-config" class="auth-config hidden">
-                            <div class="auth-row">
-                                <input type="text" id="auth-apikey-key" class="key-value-input" placeholder="Header Name (e.g., x-api-key)">
-                                <input type="text" id="auth-apikey-value" class="key-value-input" placeholder="Value">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="headers" class="tab-content">
-                        <div class="tab-header">
-                            <h3>Headers</h3>
-                            <button id="add-header-btn" class="btn secondary">Add Header</button>
-                        </div>
-                        <div id="headers-list" class="key-value-list"></div>
-                    </div>
-
-                    <div id="body" class="tab-content">
-                        <div class="body-type-selector">
-                            <label><input type="radio" name="body-type" value="none" checked> None</label>
-                            <label><input type="radio" name="body-type" value="json"> JSON</label>
-                            <label><input type="radio" name="body-type" value="text"> Raw Text</label>
-                            <label><input type="radio" name="body-type" value="form-data"> Form Data</label>
-                            <label><input type="radio" name="body-type" value="urlencoded"> x-www-form-urlencoded</label>
-                        </div>
-                        
-                        <div id="body-json-config" class="body-config hidden">
-                            <textarea id="body-json-textarea" class="body-textarea" rows="8" placeholder="Enter JSON here..."></textarea>
-                        </div>
-                        
-                        <div id="body-text-config" class="body-config hidden">
-                            <textarea id="body-text-textarea" class="body-textarea" rows="8" placeholder="Enter raw text here..."></textarea>
-                        </div>
-                        
-                        <div id="body-formdata-config" class="body-config hidden">
-                            <div class="tab-header">
-                                <h3>Form Data</h3>
-                                <button id="add-formdata-btn" class="btn secondary">Add Field</button>
-                            </div>
-                            <div id="formdata-list" class="key-value-list"></div>
-                        </div>
-                        
-                        <div id="body-urlencoded-config" class="body-config hidden">
-                            <div class="tab-header">
-                                <h3>URL Encoded</h3>
-                                <button id="add-urlencoded-btn" class="btn secondary">Add Field</button>
-                            </div>
-                            <div id="urlencoded-list" class="key-value-list"></div>
-                        </div>
-                    </div>
-                    
-                </div>
-            </div>
-        </section>
-
-        <!-- LOADING INDICATOR -->
-        <div id="loading-overlay" class="loading-overlay hidden">
-            <div class="spinner"></div>
-            <p>Sending request...</p>
+        <div class="header-actions">
+            <button id="env-vars-btn" class="btn secondary">⚙ Environment Variables</button>
         </div>
+    </header>
 
-        <!-- RESPONSE VIEWER -->
-        <section id="response-section" class="response-section hidden">
-            <h2>Response</h2>
-            <div class="response-meta" id="response-meta">
-                <div class="meta-item">Status: <span id="res-status" class="badge"></span></div>
-                <div class="meta-item">Time: <span id="res-time" class="badge"></span></div>
-                <div class="meta-item">Size: <span id="res-size" class="badge"></span></div>
-            </div>
-
-            <div class="tabs-container">
-                <div class="tabs">
-                    <button class="res-tab-btn active" data-tab="res-body">Body</button>
-                    <button class="res-tab-btn" data-tab="res-headers">Headers</button>
-                </div>
-                <div class="tab-content-container">
-                    <div id="res-body" class="res-tab-content active">
-                        <pre id="res-body-content" class="response-body-text"></pre>
-                    </div>
-                    <div id="res-headers" class="res-tab-content">
-                        <div id="res-headers-content" class="headers-display-list"></div>
+    <div id="app-container">
+        <!-- LEFT SIDEBAR -->
+        <aside class="sidebar">
+            <!-- Collections Section -->
+            <div class="sidebar-section">
+                <div class="sidebar-section-header">
+                    <h3>Collections</h3>
+                    <div class="sidebar-actions">
+                        <button id="create-collection-btn" class="btn secondary btn-sm" title="New Collection">+ New</button>
+                        <button id="export-collections-btn" class="btn secondary btn-sm" title="Export Collections">⬇ Export</button>
                     </div>
                 </div>
+                <div id="collections-list" class="sidebar-list">
+                    <p class="empty-state">No collections yet. Create one to save requests.</p>
+                </div>
             </div>
-        </section>
-    </main>
+
+            <!-- History Section -->
+            <div class="sidebar-section">
+                <div class="sidebar-section-header">
+                    <h3>History</h3>
+                    <button id="clear-history-btn" class="btn danger btn-sm" title="Clear History">Clear</button>
+                </div>
+                <div id="history-list" class="sidebar-list">
+                    <p class="empty-state">No history yet. Send a request to see it here.</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main>
+            <!-- REQUEST BUILDER -->
+            <section class="request-builder">
+                <div class="request-bar">
+                    <select id="method-select" class="method-select">
+                        <option value="GET">GET</option>
+                        <option value="POST">POST</option>
+                        <option value="PUT">PUT</option>
+                        <option value="PATCH">PATCH</option>
+                        <option value="DELETE">DELETE</option>
+                        <option value="QUERY">QUERY</option>
+                    </select>
+                    <input type="url" id="url-input" class="url-input" placeholder="https://example.com/api" required>
+                    <button id="send-button" class="btn primary">Send</button>
+                    <button id="save-request-btn" class="btn secondary" title="Save to Collection">💾 Save</button>
+                </div>
+                <div id="validation-message" class="validation-message hidden"></div>
+
+                <div class="tabs-container">
+                    <div class="tabs">
+                        <button class="tab-btn active" data-tab="params">Params</button>
+                        <button class="tab-btn" data-tab="auth">Auth</button>
+                        <button class="tab-btn" data-tab="headers">Headers</button>
+                        <button class="tab-btn" data-tab="body">Body</button>
+                    </div>
+                    <div class="tab-content-container">
+                        
+                        <div id="params" class="tab-content active">
+                            <div class="tab-header">
+                                <h3>Query Parameters</h3>
+                                <button id="add-param-btn" class="btn secondary">Add Parameter</button>
+                            </div>
+                            <div id="params-list" class="key-value-list"></div>
+                        </div>
+
+                        <div id="auth" class="tab-content">
+                            <div class="tab-header">
+                                <h3>Authentication</h3>
+                                <select id="auth-type" class="method-select" style="width: 200px;">
+                                    <option value="none">No Auth</option>
+                                    <option value="bearer">Bearer Token</option>
+                                    <option value="basic">Basic Auth</option>
+                                    <option value="apikey">API Key</option>
+                                </select>
+                            </div>
+                            
+                            <div id="auth-bearer-config" class="auth-config hidden">
+                                <input type="text" id="auth-bearer-token" class="key-value-input full-width" placeholder="Token">
+                            </div>
+                            
+                            <div id="auth-basic-config" class="auth-config hidden">
+                                <div class="auth-row">
+                                    <input type="text" id="auth-basic-username" class="key-value-input" placeholder="Username">
+                                    <input type="password" id="auth-basic-password" class="key-value-input" placeholder="Password">
+                                </div>
+                            </div>
+                            
+                            <div id="auth-apikey-config" class="auth-config hidden">
+                                <div class="auth-row">
+                                    <input type="text" id="auth-apikey-key" class="key-value-input" placeholder="Header Name (e.g., x-api-key)">
+                                    <input type="text" id="auth-apikey-value" class="key-value-input" placeholder="Value">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="headers" class="tab-content">
+                            <div class="tab-header">
+                                <h3>Headers</h3>
+                                <button id="add-header-btn" class="btn secondary">Add Header</button>
+                            </div>
+                            <div id="headers-list" class="key-value-list"></div>
+                        </div>
+
+                        <div id="body" class="tab-content">
+                            <div class="body-type-selector">
+                                <label><input type="radio" name="body-type" value="none" checked> None</label>
+                                <label><input type="radio" name="body-type" value="json"> JSON</label>
+                                <label><input type="radio" name="body-type" value="text"> Raw Text</label>
+                                <label><input type="radio" name="body-type" value="form-data"> Form Data</label>
+                                <label><input type="radio" name="body-type" value="urlencoded"> x-www-form-urlencoded</label>
+                            </div>
+                            
+                            <div id="body-json-config" class="body-config hidden">
+                                <textarea id="body-json-textarea" class="body-textarea" rows="8" placeholder="Enter JSON here..."></textarea>
+                            </div>
+                            
+                            <div id="body-text-config" class="body-config hidden">
+                                <textarea id="body-text-textarea" class="body-textarea" rows="8" placeholder="Enter raw text here..."></textarea>
+                            </div>
+                            
+                            <div id="body-formdata-config" class="body-config hidden">
+                                <div class="tab-header">
+                                    <h3>Form Data</h3>
+                                    <button id="add-formdata-btn" class="btn secondary">Add Field</button>
+                                </div>
+                                <div id="formdata-list" class="key-value-list"></div>
+                            </div>
+                            
+                            <div id="body-urlencoded-config" class="body-config hidden">
+                                <div class="tab-header">
+                                    <h3>URL Encoded</h3>
+                                    <button id="add-urlencoded-btn" class="btn secondary">Add Field</button>
+                                </div>
+                                <div id="urlencoded-list" class="key-value-list"></div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>
+            </section>
+
+            <!-- LOADING INDICATOR -->
+            <div id="loading-overlay" class="loading-overlay hidden">
+                <div class="spinner"></div>
+                <p>Sending request...</p>
+            </div>
+
+            <!-- RESPONSE VIEWER -->
+            <section id="response-section" class="response-section hidden">
+                <h2>Response</h2>
+                <div class="response-meta" id="response-meta">
+                    <div class="meta-item">Status: <span id="res-status" class="badge"></span></div>
+                    <div class="meta-item">Time: <span id="res-time" class="badge"></span></div>
+                    <div class="meta-item">Size: <span id="res-size" class="badge"></span></div>
+                </div>
+
+                <div class="tabs-container">
+                    <div class="tabs">
+                        <button class="res-tab-btn active" data-tab="res-body">Body</button>
+                        <button class="res-tab-btn" data-tab="res-headers">Headers</button>
+                    </div>
+                    <div class="tab-content-container">
+                        <div id="res-body" class="res-tab-content active">
+                            <pre id="res-body-content" class="response-body-text"></pre>
+                        </div>
+                        <div id="res-headers" class="res-tab-content">
+                            <div id="res-headers-content" class="headers-display-list"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- ENVIRONMENT VARIABLES MODAL -->
+    <div id="env-modal" class="modal-overlay hidden">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Environment Variables</h2>
+                <button id="env-modal-close" class="btn danger btn-sm">✕</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-hint">Use <code>{{VARIABLE_NAME}}</code> in URL, headers, or body to substitute values.</p>
+                <div id="env-vars-list" class="env-vars-list"></div>
+                <button id="add-env-var-btn" class="btn secondary">+ Add Variable</button>
+            </div>
+            <div class="modal-footer">
+                <button id="save-env-vars-btn" class="btn primary">Save Variables</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SAVE TO COLLECTION MODAL -->
+    <div id="save-modal" class="modal-overlay hidden">
+        <div class="modal modal-sm">
+            <div class="modal-header">
+                <h2>Save Request</h2>
+                <button id="save-modal-close" class="btn danger btn-sm">✕</button>
+            </div>
+            <div class="modal-body">
+                <label for="save-request-name">Request Name</label>
+                <input type="text" id="save-request-name" class="key-value-input full-width" placeholder="e.g., Get All Users">
+                <label for="save-collection-select" style="margin-top: 1rem; display: block;">Collection</label>
+                <select id="save-collection-select" class="method-select full-width"></select>
+            </div>
+            <div class="modal-footer">
+                <button id="confirm-save-btn" class="btn primary">Save</button>
+            </div>
+        </div>
+    </div>
 
     <script src="js/app.js"></script>
 </body>
