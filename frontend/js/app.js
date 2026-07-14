@@ -59,7 +59,31 @@ document.addEventListener('DOMContentLoaded', () => {
     const saveModalClose = document.getElementById('save-modal-close');
     const saveRequestName = document.getElementById('save-request-name');
     const saveCollectionSelect = document.getElementById('save-collection-select');
+    const saveFolderSelect = document.getElementById('save-folder-select');
     const confirmSaveBtn = document.getElementById('confirm-save-btn');
+
+    // Dark Mode
+    const darkModeToggle = document.getElementById('dark-mode-toggle');
+
+    // Response Search
+    const responseSearchInput = document.getElementById('response-search-input');
+    const responseSearchCount = document.getElementById('response-search-count');
+    const responseSearchClear = document.getElementById('response-search-clear');
+
+    // Response Variables Panel
+    const responseVarsPanel = document.getElementById('response-vars-panel');
+    const responseVarsToggle = document.getElementById('response-vars-toggle');
+    const responseVarsContent = document.getElementById('response-vars-content');
+    const responseVarsList = document.getElementById('response-vars-list');
+
+    // WebSocket Elements
+    const wsUrlInput = document.getElementById('ws-url-input');
+    const wsConnectBtn = document.getElementById('ws-connect-btn');
+    const wsDisconnectBtn = document.getElementById('ws-disconnect-btn');
+    const wsStatus = document.getElementById('ws-status');
+    const wsMessageInput = document.getElementById('ws-message-input');
+    const wsSendBtn = document.getElementById('ws-send-btn');
+    const wsMessages = document.getElementById('ws-messages');
 
     // =============================================
     // 2. localStorage Helpers
@@ -67,7 +91,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const STORAGE_KEYS = {
         COLLECTIONS: 'collections',
         HISTORY: 'requestHistory',
-        ENV_VARS: 'environmentVariables'
+        ENV_VARS: 'environmentVariables',
+        THEME: 'theme'
     };
     const MAX_HISTORY = 20;
 
@@ -116,7 +141,33 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.body-textarea').forEach(el => el.addEventListener('input', clearErrors));
 
     // =============================================
-    // 4. Tab Navigation
+    // 4. Dark Mode
+    // =============================================
+    function applyTheme(theme) {
+        if (theme === 'dark') {
+            document.body.classList.add('dark');
+            darkModeToggle.textContent = '☀ Light Mode';
+        } else {
+            document.body.classList.remove('dark');
+            darkModeToggle.textContent = '🌙 Dark Mode';
+        }
+    }
+
+    function toggleDarkMode() {
+        const isDark = document.body.classList.contains('dark');
+        const newTheme = isDark ? 'light' : 'dark';
+        saveToStorage(STORAGE_KEYS.THEME, newTheme);
+        applyTheme(newTheme);
+    }
+
+    darkModeToggle.addEventListener('click', toggleDarkMode);
+
+    // Apply saved theme on load
+    const savedTheme = loadFromStorage(STORAGE_KEYS.THEME) || 'light';
+    applyTheme(savedTheme);
+
+    // =============================================
+    // 5. Tab Navigation
     // =============================================
     tabButtons.forEach(button => {
         button.addEventListener('click', () => {
@@ -137,7 +188,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // =============================================
-    // 5. Dynamic Key-Value Rows
+    // 6. Dynamic Key-Value Rows
     // =============================================
     function createKeyValueRow(placeholderKey = 'Key', placeholderValue = 'Value', initialKey = '', initialValue = '') {
         const row = document.createElement('div');
@@ -177,7 +228,7 @@ document.addEventListener('DOMContentLoaded', () => {
     addUrlEncodedBtn.addEventListener('click', () => urlEncodedList.appendChild(createKeyValueRow('URL Encoded Key', 'Value')));
 
     // =============================================
-    // 6. Auth and Body UI Toggles
+    // 7. Auth and Body UI Toggles
     // =============================================
     authTypeSelect.addEventListener('change', (e) => {
         authConfigs.forEach(config => config.classList.add('hidden'));
@@ -194,7 +245,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // =============================================
-    // 7. Environment Variables
+    // 8. Environment Variables
     // =============================================
     function createEnvVarRow(key = '', value = '') {
         const row = document.createElement('div');
@@ -223,7 +274,6 @@ document.addEventListener('DOMContentLoaded', () => {
         envVarsList.innerHTML = '';
         const vars = loadFromStorage(STORAGE_KEYS.ENV_VARS) || [];
         if (vars.length === 0) {
-            // Add one empty row by default
             envVarsList.appendChild(createEnvVarRow());
         } else {
             vars.forEach(v => envVarsList.appendChild(createEnvVarRow(v.key, v.value)));
@@ -242,17 +292,70 @@ document.addEventListener('DOMContentLoaded', () => {
         saveToStorage(STORAGE_KEYS.ENV_VARS, vars);
     }
 
-    /** Replace {{VAR}} placeholders in a string with stored environment variable values */
+    // =============================================
+    // 9. Request Chaining – Response Variable Store
+    // =============================================
+    let lastResponseData = null; // In-memory store for the last JSON response
+
+    /** Traverse a nested object using a dot-separated path */
+    function resolveNestedPath(obj, path) {
+        const parts = path.split('.');
+        let current = obj;
+        for (const part of parts) {
+            if (current === null || current === undefined || typeof current !== 'object') return undefined;
+            current = current[part];
+        }
+        return current;
+    }
+
+    /** Flatten a JSON object into dot-notation paths for display */
+    function flattenObject(obj, prefix = '', maxDepth = 4, depth = 0) {
+        const result = [];
+        if (depth >= maxDepth || obj === null || obj === undefined) return result;
+        if (typeof obj !== 'object') return result;
+
+        for (const [key, value] of Object.entries(obj)) {
+            const path = prefix ? `${prefix}.${key}` : key;
+            if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
+                result.push({ path, value: '{...}', isObject: true });
+                result.push(...flattenObject(value, path, maxDepth, depth + 1));
+            } else if (Array.isArray(value)) {
+                result.push({ path, value: `[${value.length} items]`, isObject: true });
+                // Show first few array items
+                value.slice(0, 3).forEach((item, i) => {
+                    if (typeof item === 'object' && item !== null) {
+                        result.push({ path: `${path}[${i}]`, value: '{...}', isObject: true });
+                        result.push(...flattenObject(item, `${path}[${i}]`, maxDepth, depth + 1));
+                    } else {
+                        result.push({ path: `${path}[${i}]`, value: String(item), isObject: false });
+                    }
+                });
+            } else {
+                result.push({ path, value: String(value), isObject: false });
+            }
+        }
+        return result;
+    }
+
+    /** Replace {{VAR}} and {{response.path}} placeholders */
     function replaceVariables(str) {
         if (!str || typeof str !== 'string') return str;
         const vars = loadFromStorage(STORAGE_KEYS.ENV_VARS) || [];
-        return str.replace(/\{\{(\w+)\}\}/g, (match, varName) => {
+
+        return str.replace(/\{\{([\w.\[\]]+)\}\}/g, (match, varName) => {
+            // Check for response chaining ({{response.path}})
+            if (varName.startsWith('response.') && lastResponseData) {
+                const path = varName.substring(9); // Remove 'response.' prefix
+                const resolved = resolveNestedPath(lastResponseData, path);
+                return resolved !== undefined ? String(resolved) : match;
+            }
+            // Check environment variables
             const found = vars.find(v => v.key === varName);
-            return found ? found.value : match; // Keep placeholder if not found
+            return found ? found.value : match;
         });
     }
 
-    /** Apply variable replacement to an object of key-value pairs (headers, form data) */
+    /** Apply variable replacement to an object of key-value pairs */
     function replaceVariablesInObject(obj) {
         if (!obj || typeof obj !== 'object') return obj;
         const result = {};
@@ -261,6 +364,42 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         return result;
     }
+
+    /** Render the response variables panel */
+    function renderResponseVariables(data) {
+        if (!data || typeof data !== 'object') {
+            responseVarsPanel.classList.add('hidden');
+            return;
+        }
+        const flatPaths = flattenObject(data).filter(p => !p.isObject);
+        if (flatPaths.length === 0) {
+            responseVarsPanel.classList.add('hidden');
+            return;
+        }
+
+        responseVarsPanel.classList.remove('hidden');
+        responseVarsList.innerHTML = '';
+
+        flatPaths.slice(0, 30).forEach(item => {
+            const el = document.createElement('div');
+            el.className = 'response-var-item';
+            el.innerHTML = `
+                <span class="response-var-path">{{response.${item.path}}}</span>
+                <span class="response-var-value" title="${item.value}">${item.value}</span>
+            `;
+            el.addEventListener('click', () => {
+                // Copy the variable placeholder to clipboard
+                navigator.clipboard.writeText(`{{response.${item.path}}}`).catch(() => {});
+            });
+            responseVarsList.appendChild(el);
+        });
+    }
+
+    // Toggle response variables panel
+    responseVarsToggle.addEventListener('click', () => {
+        responseVarsContent.style.display = responseVarsContent.style.display === 'none' ? 'block' : 'none';
+        responseVarsToggle.querySelector('.toggle-arrow').classList.toggle('collapsed');
+    });
 
     // Env modal events
     envVarsBtn.addEventListener('click', () => {
@@ -276,7 +415,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // =============================================
-    // 8. Request Builders
+    // 10. Request Builders
     // =============================================
     function buildQueryString() {
         const params = new URLSearchParams();
@@ -358,7 +497,54 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =============================================
-    // 9. Response Rendering Helpers
+    // 11. Response Search and Filtering
+    // =============================================
+    let currentResponseText = ''; // Store raw response text for search
+
+    function performResponseSearch() {
+        const query = responseSearchInput.value.trim();
+        if (!query || !currentResponseText) {
+            resBodyContent.textContent = currentResponseText;
+            responseSearchCount.style.display = 'none';
+            responseSearchClear.style.display = 'none';
+            return;
+        }
+
+        // Escape special regex characters in user input
+        const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(`(${escapedQuery})`, 'gi');
+        const matches = currentResponseText.match(regex);
+        const count = matches ? matches.length : 0;
+
+        // Show count badge
+        responseSearchCount.textContent = `${count} match${count !== 1 ? 'es' : ''}`;
+        responseSearchCount.style.display = 'inline-block';
+        responseSearchClear.style.display = 'inline-block';
+
+        if (count > 0) {
+            // Use innerHTML with highlighted matches (escape HTML first)
+            const escaped = currentResponseText
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+            const highlighted = escaped.replace(
+                new RegExp(`(${escapedQuery.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')})`, 'gi'),
+                '<mark>$1</mark>'
+            );
+            resBodyContent.innerHTML = highlighted;
+        } else {
+            resBodyContent.textContent = currentResponseText;
+        }
+    }
+
+    responseSearchInput.addEventListener('input', performResponseSearch);
+    responseSearchClear.addEventListener('click', () => {
+        responseSearchInput.value = '';
+        performResponseSearch();
+    });
+
+    // =============================================
+    // 12. Response Rendering Helpers
     // =============================================
     function renderResponseUI(data) {
         responseSection.classList.remove('hidden');
@@ -368,19 +554,36 @@ document.addEventListener('DOMContentLoaded', () => {
         resTime.textContent = data.time || 'N/A';
         resSize.textContent = data.size || 'N/A';
         
-        if (data.body === undefined || data.body === null || data.body === '') {
-            resBodyContent.textContent = 'No response body returned.';
-        } else if (typeof data.body === 'object') {
-            resBodyContent.textContent = JSON.stringify(data.body, null, 2);
-        } else {
-            try {
-                const parsed = JSON.parse(data.body);
-                resBodyContent.textContent = JSON.stringify(parsed, null, 2);
-            } catch {
-                resBodyContent.textContent = data.body;
+        // Store response body for request chaining
+        let parsedBody = null;
+        if (data.body !== undefined && data.body !== null && data.body !== '') {
+            if (typeof data.body === 'object') {
+                parsedBody = data.body;
+                currentResponseText = JSON.stringify(data.body, null, 2);
+            } else {
+                try {
+                    parsedBody = JSON.parse(data.body);
+                    currentResponseText = JSON.stringify(parsedBody, null, 2);
+                } catch {
+                    currentResponseText = data.body;
+                }
             }
+        } else {
+            currentResponseText = 'No response body returned.';
         }
 
+        resBodyContent.textContent = currentResponseText;
+
+        // Update chaining store and render variables panel
+        lastResponseData = parsedBody;
+        renderResponseVariables(parsedBody);
+
+        // Reset search
+        responseSearchInput.value = '';
+        responseSearchCount.style.display = 'none';
+        responseSearchClear.style.display = 'none';
+
+        // Render Headers
         resHeadersContent.innerHTML = '';
         if (data.headers && Object.keys(data.headers).length > 0) {
             for (const [key, value] of Object.entries(data.headers)) {
@@ -412,12 +615,15 @@ document.addEventListener('DOMContentLoaded', () => {
         resTime.textContent = '-';
         resSize.textContent = '-';
         
+        currentResponseText = errorMessage;
         resBodyContent.textContent = errorMessage;
+        lastResponseData = null;
+        responseVarsPanel.classList.add('hidden');
         resHeadersContent.innerHTML = '<p style="padding: 1rem;">No headers available due to request error.</p>';
     }
 
     // =============================================
-    // 10. Request History
+    // 13. Request History
     // =============================================
     function getHistory() {
         return loadFromStorage(STORAGE_KEYS.HISTORY) || [];
@@ -432,7 +638,6 @@ document.addEventListener('DOMContentLoaded', () => {
             timestamp: new Date().toISOString()
         };
         history.unshift(item);
-        // Keep only the last MAX_HISTORY items
         if (history.length > MAX_HISTORY) history.length = MAX_HISTORY;
         saveToStorage(STORAGE_KEYS.HISTORY, history);
         renderHistory();
@@ -483,7 +688,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // =============================================
-    // 11. Collections
+    // 14. Collections with Folders
     // =============================================
     function getCollections() {
         return loadFromStorage(STORAGE_KEYS.COLLECTIONS) || [];
@@ -497,7 +702,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const name = prompt('Enter collection name:');
         if (!name || !name.trim()) return;
         const collections = getCollections();
-        collections.push({ id: generateId(), name: name.trim(), requests: [] });
+        collections.push({ id: generateId(), name: name.trim(), requests: [], folders: [] });
         saveCollections(collections);
         renderCollections();
     }
@@ -521,21 +726,143 @@ document.addEventListener('DOMContentLoaded', () => {
         renderCollections();
     }
 
-    function deleteRequest(collectionId, requestId) {
+    // Folder CRUD helpers – find and modify folders recursively
+    function findFolderById(folders, folderId) {
+        for (const folder of folders) {
+            if (folder.id === folderId) return folder;
+            if (folder.folders && folder.folders.length > 0) {
+                const found = findFolderById(folder.folders, folderId);
+                if (found) return found;
+            }
+        }
+        return null;
+    }
+
+    function deleteFolderById(folders, folderId) {
+        const idx = folders.findIndex(f => f.id === folderId);
+        if (idx !== -1) { folders.splice(idx, 1); return true; }
+        for (const folder of folders) {
+            if (folder.folders && deleteFolderById(folder.folders, folderId)) return true;
+        }
+        return false;
+    }
+
+    function createFolder(collectionId, parentFolderId) {
+        const name = prompt('Enter folder name:');
+        if (!name || !name.trim()) return;
         const collections = getCollections();
         const collection = collections.find(c => c.id === collectionId);
         if (!collection) return;
-        collection.requests = collection.requests.filter(r => r.id !== requestId);
+
+        const newFolder = { id: generateId(), name: name.trim(), requests: [], folders: [] };
+
+        if (parentFolderId) {
+            if (!collection.folders) collection.folders = [];
+            const parentFolder = findFolderById(collection.folders, parentFolderId);
+            if (parentFolder) {
+                if (!parentFolder.folders) parentFolder.folders = [];
+                parentFolder.folders.push(newFolder);
+            }
+        } else {
+            if (!collection.folders) collection.folders = [];
+            collection.folders.push(newFolder);
+        }
+
         saveCollections(collections);
         renderCollections();
     }
 
-    /** Capture the current state of the request builder into a serializable object */
+    function renameFolder(collectionId, folderId) {
+        const collections = getCollections();
+        const collection = collections.find(c => c.id === collectionId);
+        if (!collection || !collection.folders) return;
+        const folder = findFolderById(collection.folders, folderId);
+        if (!folder) return;
+        const newName = prompt('Rename folder:', folder.name);
+        if (!newName || !newName.trim()) return;
+        folder.name = newName.trim();
+        saveCollections(collections);
+        renderCollections();
+    }
+
+    function deleteFolder(collectionId, folderId) {
+        if (!confirm('Delete this folder and all its contents?')) return;
+        const collections = getCollections();
+        const collection = collections.find(c => c.id === collectionId);
+        if (!collection || !collection.folders) return;
+        deleteFolderById(collection.folders, folderId);
+        saveCollections(collections);
+        renderCollections();
+    }
+
+    // Delete a request from collection root or any folder
+    function deleteRequestFromCollection(collectionId, requestId) {
+        const collections = getCollections();
+        const collection = collections.find(c => c.id === collectionId);
+        if (!collection) return;
+        // Try root requests
+        const rootIdx = collection.requests.findIndex(r => r.id === requestId);
+        if (rootIdx !== -1) {
+            collection.requests.splice(rootIdx, 1);
+            saveCollections(collections);
+            renderCollections();
+            return;
+        }
+        // Try folders recursively
+        function removeFromFolders(folders) {
+            for (const folder of folders) {
+                const idx = folder.requests.findIndex(r => r.id === requestId);
+                if (idx !== -1) { folder.requests.splice(idx, 1); return true; }
+                if (folder.folders && removeFromFolders(folder.folders)) return true;
+            }
+            return false;
+        }
+        if (collection.folders) removeFromFolders(collection.folders);
+        saveCollections(collections);
+        renderCollections();
+    }
+
+    // Duplicate a request
+    function duplicateRequest(collectionId, requestId) {
+        const collections = getCollections();
+        const collection = collections.find(c => c.id === collectionId);
+        if (!collection) return;
+
+        function findAndDuplicate(requestsArray) {
+            const idx = requestsArray.findIndex(r => r.id === requestId);
+            if (idx !== -1) {
+                const original = requestsArray[idx];
+                const copy = JSON.parse(JSON.stringify(original));
+                copy.id = generateId();
+                copy.name = `Copy of ${original.name || 'Request'}`;
+                requestsArray.splice(idx + 1, 0, copy);
+                return true;
+            }
+            return false;
+        }
+
+        // Try root
+        if (!findAndDuplicate(collection.requests)) {
+            // Try folders recursively
+            function searchFolders(folders) {
+                for (const folder of folders) {
+                    if (findAndDuplicate(folder.requests)) return true;
+                    if (folder.folders && searchFolders(folder.folders)) return true;
+                }
+                return false;
+            }
+            if (collection.folders) searchFolders(collection.folders);
+        }
+
+        saveCollections(collections);
+        renderCollections();
+    }
+
+    /** Capture the current state of the request builder */
     function captureCurrentRequest() {
         const method = methodSelect.value;
         const url = urlInput.value.trim();
 
-        // Capture params
         const params = [];
         paramsList.querySelectorAll('.key-value-row').forEach(row => {
             const key = row.querySelector('.key-input').value.trim();
@@ -543,7 +870,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (key) params.push({ key, value });
         });
 
-        // Capture headers
         const headers = [];
         headersList.querySelectorAll('.key-value-row').forEach(row => {
             const key = row.querySelector('.key-input').value.trim();
@@ -551,7 +877,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (key) headers.push({ key, value });
         });
 
-        // Capture auth
         const authType = authTypeSelect.value;
         const auth = { type: authType };
         if (authType === 'bearer') auth.token = document.getElementById('auth-bearer-token').value;
@@ -564,7 +889,6 @@ document.addEventListener('DOMContentLoaded', () => {
             auth.value = document.getElementById('auth-apikey-value').value;
         }
 
-        // Capture body
         const bodyType = document.querySelector('input[name="body-type"]:checked').value;
         const body = { type: bodyType };
         if (bodyType === 'json') body.content = document.getElementById('body-json-textarea').value;
@@ -589,25 +913,21 @@ document.addEventListener('DOMContentLoaded', () => {
         return { method, url, params, headers, auth, body };
     }
 
-    /** Load a saved request object back into the request builder UI */
+    /** Load a saved request back into the builder */
     function loadRequestIntoBuilder(request) {
-        // Set method and URL
         methodSelect.value = request.method || 'GET';
         urlInput.value = request.url || '';
 
-        // Restore params
         if (request.params && request.params.length > 0) {
             paramsList.innerHTML = '';
             request.params.forEach(p => paramsList.appendChild(createKeyValueRow('Query Parameter', 'Value', p.key, p.value)));
         }
 
-        // Restore headers
         if (request.headers && request.headers.length > 0) {
             headersList.innerHTML = '';
             request.headers.forEach(h => headersList.appendChild(createKeyValueRow('Header (e.g., Content-Type)', 'Value', h.key, h.value)));
         }
 
-        // Restore auth
         if (request.auth) {
             authTypeSelect.value = request.auth.type || 'none';
             authTypeSelect.dispatchEvent(new Event('change'));
@@ -622,7 +942,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Restore body
         if (request.body) {
             const bodyRadio = document.querySelector(`input[name="body-type"][value="${request.body.type}"]`);
             if (bodyRadio) {
@@ -642,8 +961,96 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Scroll main area to top
         document.querySelector('main').scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // =============================================
+    // 15. Render Collections with Folders
+    // =============================================
+
+    /** Render a single request item element */
+    function createRequestItemEl(req, collectionId) {
+        const reqEl = document.createElement('div');
+        reqEl.className = 'saved-request-item';
+        reqEl.innerHTML = `
+            <span class="method-badge ${req.method.toLowerCase()}">${req.method}</span>
+            <span class="request-name" title="${req.name || req.url}">${req.name || req.url}</span>
+            <div class="request-item-actions">
+                <button class="duplicate-request-btn" title="Duplicate">📋</button>
+                <button class="delete-request-btn" title="Delete">✕</button>
+            </div>
+        `;
+        reqEl.addEventListener('click', (e) => {
+            if (e.target.closest('.request-item-actions')) return;
+            loadRequestIntoBuilder(req);
+        });
+        reqEl.querySelector('.delete-request-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            deleteRequestFromCollection(collectionId, req.id);
+        });
+        reqEl.querySelector('.duplicate-request-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            duplicateRequest(collectionId, req.id);
+        });
+        return reqEl;
+    }
+
+    /** Recursively render a folder and its children */
+    function renderFolder(folder, collectionId, depth = 0) {
+        const folderEl = document.createElement('div');
+        folderEl.className = 'folder-item';
+
+        const header = document.createElement('div');
+        header.className = 'folder-header';
+        header.innerHTML = `
+            <span class="folder-name" title="${folder.name}">${folder.name}</span>
+            <div class="collection-actions">
+                <button class="add-subfolder-btn" title="Add sub-folder">📁+</button>
+                <button class="rename-btn" title="Rename">✏</button>
+                <button class="delete-btn" title="Delete">🗑</button>
+            </div>
+        `;
+
+        const children = document.createElement('div');
+        children.className = 'folder-children';
+
+        // Render requests in this folder
+        if (folder.requests && folder.requests.length > 0) {
+            folder.requests.forEach(req => children.appendChild(createRequestItemEl(req, collectionId)));
+        }
+
+        // Render sub-folders (limit to 2 levels)
+        if (folder.folders && folder.folders.length > 0 && depth < 2) {
+            folder.folders.forEach(subFolder => children.appendChild(renderFolder(subFolder, collectionId, depth + 1)));
+        }
+
+        if ((!folder.requests || folder.requests.length === 0) && (!folder.folders || folder.folders.length === 0)) {
+            children.innerHTML = '<p class="empty-state" style="padding-left:0.5rem;font-size:0.8rem;">Empty folder</p>';
+        }
+
+        // Toggle expand/collapse
+        header.addEventListener('click', (e) => {
+            if (e.target.closest('.collection-actions')) return;
+            children.classList.toggle('expanded');
+        });
+
+        // Folder actions
+        header.querySelector('.add-subfolder-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            createFolder(collectionId, folder.id);
+        });
+        header.querySelector('.rename-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            renameFolder(collectionId, folder.id);
+        });
+        header.querySelector('.delete-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            deleteFolder(collectionId, folder.id);
+        });
+
+        folderEl.appendChild(header);
+        folderEl.appendChild(children);
+        return folderEl;
     }
 
     function renderCollections() {
@@ -659,45 +1066,34 @@ document.addEventListener('DOMContentLoaded', () => {
             const item = document.createElement('div');
             item.className = 'collection-item';
 
-            // Header row (clickable to expand)
+            const totalReqs = countRequests(collection);
             const header = document.createElement('div');
             header.className = 'collection-header';
             header.innerHTML = `
                 <span class="collection-name" title="${collection.name}">${collection.name}</span>
-                <span style="color:#999; font-size:0.75rem;">(${collection.requests.length})</span>
+                <span style="color:var(--text-muted); font-size:0.75rem;">(${totalReqs})</span>
                 <div class="collection-actions">
+                    <button class="add-folder-btn" title="Add folder">📁+</button>
                     <button class="rename-btn" title="Rename">✏</button>
                     <button class="delete-btn" title="Delete">🗑</button>
                 </div>
             `;
 
-            // Requests container (expandable)
             const requestsContainer = document.createElement('div');
             requestsContainer.className = 'collection-requests';
 
-            if (collection.requests.length === 0) {
+            // Render root requests
+            if (collection.requests && collection.requests.length > 0) {
+                collection.requests.forEach(req => requestsContainer.appendChild(createRequestItemEl(req, collection.id)));
+            }
+
+            // Render folders
+            if (collection.folders && collection.folders.length > 0) {
+                collection.folders.forEach(folder => requestsContainer.appendChild(renderFolder(folder, collection.id)));
+            }
+
+            if (totalReqs === 0 && (!collection.folders || collection.folders.length === 0)) {
                 requestsContainer.innerHTML = '<p class="empty-state" style="padding-left:0.5rem;">No saved requests.</p>';
-            } else {
-                collection.requests.forEach(req => {
-                    const reqEl = document.createElement('div');
-                    reqEl.className = 'saved-request-item';
-                    reqEl.innerHTML = `
-                        <span class="method-badge ${req.method.toLowerCase()}">${req.method}</span>
-                        <span class="request-name" title="${req.name || req.url}">${req.name || req.url}</span>
-                        <button class="delete-request-btn" title="Delete request">✕</button>
-                    `;
-                    // Load request on click
-                    reqEl.addEventListener('click', (e) => {
-                        if (e.target.classList.contains('delete-request-btn')) return;
-                        loadRequestIntoBuilder(req);
-                    });
-                    // Delete request
-                    reqEl.querySelector('.delete-request-btn').addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        deleteRequest(collection.id, req.id);
-                    });
-                    requestsContainer.appendChild(reqEl);
-                });
             }
 
             // Toggle expand/collapse on header click
@@ -706,7 +1102,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 requestsContainer.classList.toggle('expanded');
             });
 
-            // Rename and Delete actions
+            // Collection-level actions
+            header.querySelector('.add-folder-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                createFolder(collection.id, null);
+            });
             header.querySelector('.rename-btn').addEventListener('click', (e) => {
                 e.stopPropagation();
                 renameCollection(collection.id);
@@ -722,19 +1122,42 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Create collection button
+    /** Count total requests in a collection (root + all folders recursively) */
+    function countRequests(collection) {
+        let count = collection.requests ? collection.requests.length : 0;
+        function countInFolders(folders) {
+            if (!folders) return;
+            folders.forEach(f => {
+                count += f.requests ? f.requests.length : 0;
+                if (f.folders) countInFolders(f.folders);
+            });
+        }
+        countInFolders(collection.folders);
+        return count;
+    }
+
     createCollectionBtn.addEventListener('click', createCollection);
 
     // =============================================
-    // 12. Save Request to Collection
+    // 16. Save Request to Collection (with folder support)
     // =============================================
+    function populateFolderOptions(folders, prefix = '') {
+        if (!folders) return;
+        folders.forEach(folder => {
+            const option = document.createElement('option');
+            option.value = folder.id;
+            option.textContent = `${prefix}📁 ${folder.name}`;
+            saveFolderSelect.appendChild(option);
+            if (folder.folders) populateFolderOptions(folder.folders, prefix + '  ');
+        });
+    }
+
     function openSaveModal() {
         const collections = getCollections();
         if (collections.length === 0) {
             alert('No collections exist. Please create a collection first.');
             return;
         }
-        // Populate the collection dropdown
         saveCollectionSelect.innerHTML = '';
         collections.forEach(c => {
             const option = document.createElement('option');
@@ -742,16 +1165,37 @@ document.addEventListener('DOMContentLoaded', () => {
             option.textContent = c.name;
             saveCollectionSelect.appendChild(option);
         });
-        // Default request name from the URL
+
+        // Populate folder select for the first collection
+        updateFolderSelect();
+
         const method = methodSelect.value;
         const url = urlInput.value.trim();
-        saveRequestName.value = url ? `${method} ${new URL(url).pathname}` : '';
+        try {
+            saveRequestName.value = url ? `${method} ${new URL(url).pathname}` : '';
+        } catch {
+            saveRequestName.value = url ? `${method} request` : '';
+        }
         saveModal.classList.remove('hidden');
     }
+
+    function updateFolderSelect() {
+        const collections = getCollections();
+        const selectedCollectionId = saveCollectionSelect.value;
+        const collection = collections.find(c => c.id === selectedCollectionId);
+
+        saveFolderSelect.innerHTML = '<option value="">(Root of collection)</option>';
+        if (collection && collection.folders) {
+            populateFolderOptions(collection.folders);
+        }
+    }
+
+    saveCollectionSelect.addEventListener('change', updateFolderSelect);
 
     function confirmSaveRequest() {
         const name = saveRequestName.value.trim();
         const collectionId = saveCollectionSelect.value;
+        const folderId = saveFolderSelect.value;
         if (!name) {
             alert('Please enter a request name.');
             return;
@@ -763,7 +1207,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const requestData = captureCurrentRequest();
         requestData.id = generateId();
         requestData.name = name;
-        collection.requests.push(requestData);
+
+        if (folderId) {
+            if (!collection.folders) collection.folders = [];
+            const folder = findFolderById(collection.folders, folderId);
+            if (folder) {
+                if (!folder.requests) folder.requests = [];
+                folder.requests.push(requestData);
+            } else {
+                collection.requests.push(requestData);
+            }
+        } else {
+            collection.requests.push(requestData);
+        }
+
         saveCollections(collections);
         renderCollections();
         saveModal.classList.add('hidden');
@@ -775,7 +1232,7 @@ document.addEventListener('DOMContentLoaded', () => {
     confirmSaveBtn.addEventListener('click', confirmSaveRequest);
 
     // =============================================
-    // 13. Export Collections
+    // 17. Export Collections
     // =============================================
     function exportCollections() {
         const collections = getCollections();
@@ -804,7 +1261,119 @@ document.addEventListener('DOMContentLoaded', () => {
     exportCollectionsBtn.addEventListener('click', exportCollections);
 
     // =============================================
-    // 14. Request Execution Logic (with Variable Replacement & History)
+    // 18. WebSocket Testing
+    // =============================================
+    let wsConnection = null;
+
+    function wsLog(direction, content) {
+        const time = new Date().toLocaleTimeString();
+        const msg = document.createElement('div');
+        msg.className = 'ws-msg';
+        msg.innerHTML = `
+            <span class="ws-msg-direction ${direction}">${direction === 'sent' ? '▲' : direction === 'received' ? '▼' : '●'}</span>
+            <span class="ws-msg-time">${time}</span>
+            <span class="ws-msg-content">${content}</span>
+        `;
+        // Remove the empty state message if present
+        const emptyState = wsMessages.querySelector('.empty-state');
+        if (emptyState) emptyState.remove();
+
+        wsMessages.appendChild(msg);
+        wsMessages.scrollTop = wsMessages.scrollHeight;
+    }
+
+    function setWsStatus(status) {
+        wsStatus.className = `ws-status ${status}`;
+        if (status === 'connected') {
+            wsStatus.textContent = '● Connected';
+            wsConnectBtn.disabled = true;
+            wsDisconnectBtn.disabled = false;
+            wsMessageInput.disabled = false;
+            wsSendBtn.disabled = false;
+        } else if (status === 'disconnected') {
+            wsStatus.textContent = '● Disconnected';
+            wsConnectBtn.disabled = false;
+            wsDisconnectBtn.disabled = true;
+            wsMessageInput.disabled = true;
+            wsSendBtn.disabled = true;
+        } else if (status === 'error') {
+            wsStatus.textContent = '● Error';
+            wsConnectBtn.disabled = false;
+            wsDisconnectBtn.disabled = true;
+            wsMessageInput.disabled = true;
+            wsSendBtn.disabled = true;
+        }
+    }
+
+    function wsConnect() {
+        const url = wsUrlInput.value.trim();
+        if (!url) {
+            alert('Please enter a WebSocket URL.');
+            return;
+        }
+        // Validate URL format
+        if (!url.startsWith('ws://') && !url.startsWith('wss://')) {
+            alert('Invalid WebSocket URL. Must start with ws:// or wss://');
+            return;
+        }
+
+        try {
+            wsConnection = new WebSocket(url);
+
+            wsConnection.onopen = () => {
+                setWsStatus('connected');
+                wsLog('system', `Connected to ${url}`);
+            };
+
+            wsConnection.onmessage = (event) => {
+                let displayData = event.data;
+                try {
+                    const parsed = JSON.parse(event.data);
+                    displayData = JSON.stringify(parsed, null, 2);
+                } catch { /* Keep raw text */ }
+                wsLog('received', displayData);
+            };
+
+            wsConnection.onerror = () => {
+                setWsStatus('error');
+                wsLog('system', 'Connection error occurred.');
+            };
+
+            wsConnection.onclose = (event) => {
+                setWsStatus('disconnected');
+                wsLog('system', `Disconnected (code: ${event.code}, reason: ${event.reason || 'none'})`);
+                wsConnection = null;
+            };
+        } catch (e) {
+            setWsStatus('error');
+            wsLog('system', `Failed to connect: ${e.message}`);
+        }
+    }
+
+    function wsDisconnect() {
+        if (wsConnection) {
+            wsConnection.close();
+            wsConnection = null;
+        }
+    }
+
+    function wsSendMessage() {
+        const message = wsMessageInput.value.trim();
+        if (!message || !wsConnection || wsConnection.readyState !== WebSocket.OPEN) return;
+        wsConnection.send(message);
+        wsLog('sent', message);
+        wsMessageInput.value = '';
+    }
+
+    wsConnectBtn.addEventListener('click', wsConnect);
+    wsDisconnectBtn.addEventListener('click', wsDisconnect);
+    wsSendBtn.addEventListener('click', wsSendMessage);
+    wsMessageInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') wsSendMessage();
+    });
+
+    // =============================================
+    // 19. Request Execution Logic
     // =============================================
     async function handleSendRequest() {
         clearErrors();
@@ -813,7 +1382,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (!url) return showError(urlInput, "URL cannot be empty.");
         
-        // Apply variable replacement to the URL before validation
+        // Apply variable replacement (env vars + response chaining)
         url = replaceVariables(url);
         
         try { new URL(url); } catch { return showError(urlInput, "Invalid URL format. Check your environment variables."); }
@@ -855,10 +1424,9 @@ document.addEventListener('DOMContentLoaded', () => {
             finalUrl = urlObj.toString();
         } catch { finalUrl = url + queryString; }
 
-        // Apply variable replacement to final URL (in case params had variables)
         finalUrl = replaceVariables(finalUrl);
 
-        // Save to history (using the original URL the user typed, before replacement)
+        // Save to history
         addHistoryItem(method, urlInput.value.trim());
 
         // Trigger Loading State
@@ -907,7 +1475,7 @@ document.addEventListener('DOMContentLoaded', () => {
     sendButton.addEventListener('click', handleSendRequest);
 
     // =============================================
-    // 15. Initialize on Load
+    // 20. Initialize on Load
     // =============================================
     renderCollections();
     renderHistory();

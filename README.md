@@ -20,36 +20,65 @@ A lightweight browser-based API Testing Platform designed to run simply without 
 - **Headers Tab:** Scrollable key-value display of response headers
 - **Loading State:** Spinner overlay with disabled send button
 
-### Collections (Commit 5)
+### Collections & Folders
 - Create named collections to organize requests
-- Save the current request builder state (method, URL, params, headers, auth, body) into a collection
+- Create folders and sub-folders inside collections (up to 2 levels of nesting)
+- Save the current request builder state into any collection or folder
 - Load any saved request back into the builder with one click
-- Rename or delete collections
+- Rename or delete collections and folders
 - Delete individual saved requests
-- Expand/collapse collections in the sidebar
+- Expand/collapse collections and folders in the sidebar
 
-### Request History (Commit 5)
+### Request Duplication
+- Duplicate any saved request with one click (📋 button)
+- Automatically named "Copy of [original name]"
+- The duplicate is independent — edit it without affecting the original
+
+### Request History
 - Automatically records the last 20 requests sent
 - Each entry shows HTTP method, URL, and relative timestamp
 - Click any history item to restore the method and URL into the builder
 - Clear all history with one click
 
-### Environment Variables (Commit 5)
+### Environment Variables
 - Create reusable key-value variables (e.g., `BASE_URL = https://dummyjson.com`)
 - Use `{{VARIABLE_NAME}}` placeholders in URL, headers, JSON body, raw text body, form data, and URL-encoded fields
 - Variables are resolved at send time — missing variables keep their `{{placeholder}}` unchanged
-- Manage variables through a dedicated modal
 
-### Export Collections (Commit 5)
+### Request Chaining
+- After each successful response, the JSON body is stored in memory
+- Use `{{response.path.to.value}}` to reference values from the last response in your next request
+- Supports nested properties via dot notation (e.g., `{{response.user.id}}`)
+- The **Response Variables** panel shows all available paths and values
+- Click any variable to copy the placeholder to your clipboard
+
+### Response Search & Filtering
+- Search bar above the response body lets you search for any text
+- Matching results are highlighted with a yellow `<mark>`
+- A match count badge shows how many results were found
+- Works for both JSON and plain text responses
+
+### WebSocket Testing
+- Enter a WebSocket URL (`ws://` or `wss://`) and connect
+- Send and receive messages in real-time
+- Messages are displayed with timestamps and direction indicators (▲ sent, ▼ received)
+- Connection status indicator (Connected / Disconnected / Error)
+- Handles connection errors and unexpected disconnects gracefully
+
+### Dark Mode
+- Toggle between Light and Dark themes with one click
+- Theme preference is saved to localStorage and applied automatically on page load
+- All UI components remain fully readable in both modes
+
+### Export Collections
 - One-click export of all collections as a downloadable JSON file
-- Includes collection names, all saved requests, and export metadata
-- Uses native browser download (Blob + anchor element) — no external libraries
+- Includes collection names, folders, all saved requests, and export metadata
 
 ---
 
 ## Technologies Used
 
-- **Frontend:** HTML, CSS, Vanilla JavaScript
+- **Frontend:** HTML, CSS (with CSS Custom Properties), Vanilla JavaScript
 - **Backend:** Node.js, Express.js
 - **Storage:** Browser localStorage (no database)
 
@@ -69,7 +98,7 @@ lite-postman/
 │   └── server.js              # Express server entry point
 ├── frontend/
 │   ├── css/
-│   │   └── style.css          # All application styles
+│   │   └── style.css          # All styles (light + dark themes via CSS variables)
 │   ├── js/
 │   │   └── app.js             # All frontend logic
 │   └── index.html             # Main HTML page
@@ -108,68 +137,82 @@ lite-postman/
 
 ---
 
-## How to Test (Commit 5)
-
-### Collections
-1. Click **+ New** in the sidebar to create a collection (e.g., "My APIs").
-2. Enter a URL like `https://jsonplaceholder.typicode.com/posts/1` and select GET.
-3. Click **💾 Save** → give the request a name → select the collection → Save.
-4. Click the collection name in the sidebar to expand it.
-5. Click a saved request to load it back into the builder.
-6. Use ✏ to rename a collection, 🗑 to delete it, or ✕ to delete a single request.
-
-### Request History
-1. Send any request using the Send button.
-2. Observe the request appear in the **History** section of the sidebar.
-3. Click any history item to restore its method and URL.
-4. Click **Clear** to remove all history.
-5. Send more than 20 requests and verify that only the 20 most recent are kept.
-
-### Environment Variables
-1. Click **⚙ Environment Variables** in the header.
-2. Add a variable: Key = `BASE_URL`, Value = `https://jsonplaceholder.typicode.com`.
-3. Click **Save Variables**.
-4. In the URL input, type `{{BASE_URL}}/posts/1`.
-5. Click **Send** — the variable is resolved and the request is sent to the full URL.
-
-### Export Collections
-1. Create at least one collection with saved requests.
-2. Click **⬇ Export** in the sidebar.
-3. A JSON file downloads automatically.
-4. Open the file and verify it contains your collection names and saved requests.
-
----
-
 ## Request Flow
 
-1. User fills in the request builder (method, URL, headers, auth, body).
-2. User clicks **Send**.
-3. `{{VAR}}` placeholders are replaced with environment variable values.
-4. The request is validated (URL format, JSON syntax).
-5. The request is added to history (capped at 20 items).
-6. The frontend sends a POST to `http://localhost:5000/proxy` with the request details.
-7. The Express proxy server forwards the request to the target URL.
-8. The proxy returns the response (status, headers, body, time, size) as JSON.
-9. The frontend renders the response in the Response Viewer.
+```
+User fills builder → Clicks "Send"
+       ↓
+replaceVariables() resolves {{VAR}} and {{response.*}} placeholders
+       ↓
+Validation (URL format, JSON syntax)
+       ↓
+addHistoryItem() saves method + URL to localStorage
+       ↓
+Frontend POSTs to http://localhost:5000/proxy
+       ↓
+Express proxy forwards request to target URL
+       ↓
+Proxy returns {status, statusText, headers, body, time, size}
+       ↓
+renderResponseUI() displays results + stores response for chaining
+```
 
 ---
 
 ## localStorage Keys
 
-| Key                    | Structure                                                                 |
-|------------------------|---------------------------------------------------------------------------|
-| `collections`          | Array of `{ id, name, requests: [{ id, name, method, url, params, headers, auth, body }] }` |
-| `requestHistory`       | Array of `{ id, method, url, timestamp }` (max 20)                       |
-| `environmentVariables` | Array of `{ key, value }`                                                |
+| Key                    | Structure |
+|------------------------|-----------|
+| `collections`          | Array of `{ id, name, requests: [...], folders: [{ id, name, requests, folders }] }` |
+| `requestHistory`       | Array of `{ id, method, url, timestamp }` (max 20) |
+| `environmentVariables` | Array of `{ key, value }` |
+| `theme`                | `"light"` or `"dark"` |
+
+---
+
+## Testing Guide
+
+### Request Chaining
+1. Send GET to `https://jsonplaceholder.typicode.com/posts/1`.
+2. See the **Response Variables** panel show available paths.
+3. Click `{{response.userId}}` to copy it.
+4. In the URL, type `https://jsonplaceholder.typicode.com/users/{{response.userId}}`.
+5. Send — it resolves to `/users/1` and returns the user data.
+
+### WebSocket Testing
+1. Enter `wss://echo.websocket.events` and click **Connect**.
+2. Observe the status change to **Connected**.
+3. Type a message and click **Send** — see it echoed back.
+4. Click **Disconnect** — observe graceful disconnect.
+
+### Response Search
+1. Send any request that returns JSON.
+2. Type a keyword in the search bar above the response body.
+3. Verify matches are highlighted in yellow with a count badge.
+
+### Dark Mode
+1. Click **🌙 Dark Mode** in the header.
+2. Verify all UI elements switch to dark theme.
+3. Refresh the page — verify the theme persists.
+
+### Collection Folders
+1. Create a collection → click 📁+ to add a folder.
+2. Expand the folder → click 📁+ inside to add a sub-folder.
+3. Save a request into a folder using the folder dropdown in the save modal.
+
+### Request Duplication
+1. Save a request to a collection.
+2. Hover over it → click 📋 (duplicate).
+3. Verify "Copy of [name]" appears below the original.
 
 ---
 
 ## Future Improvements
 
 - Import collections from JSON files
-- Request chaining (use response values in subsequent requests)
-- WebSocket testing support
-- Response body search and filtering
-- Dark mode toggle
-- Collection folders and sub-folders
-- Request duplication within collections
+- Drag-and-drop to reorder requests and move between folders
+- Multiple environment profiles (dev, staging, production)
+- Response body diff comparison
+- Keyboard shortcuts for common actions
+- Request pre-scripts and test scripts
+- GraphQL query support

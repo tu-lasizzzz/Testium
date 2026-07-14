@@ -8,7 +8,10 @@
 </head>
 <body>
     <header>
-        <h1>Postman Lite</h1>
+        <div class="header-top">
+            <h1>Postman Lite</h1>
+            <button id="dark-mode-toggle" class="btn secondary btn-sm" title="Toggle Dark Mode">🌙 Dark Mode</button>
+        </div>
         <p>Lightweight browser-based API testing platform.</p>
         <div class="header-actions">
             <button id="env-vars-btn" class="btn secondary">⚙ Environment Variables</button>
@@ -178,12 +181,48 @@
                     </div>
                     <div class="tab-content-container">
                         <div id="res-body" class="res-tab-content active">
+                            <!-- Response Search Bar -->
+                            <div id="response-search-bar" class="response-search-bar">
+                                <input type="text" id="response-search-input" class="key-value-input" placeholder="Search response body...">
+                                <span id="response-search-count" class="badge" style="display:none;"></span>
+                                <button id="response-search-clear" class="btn danger btn-sm" style="display:none;">✕</button>
+                            </div>
                             <pre id="res-body-content" class="response-body-text"></pre>
                         </div>
                         <div id="res-headers" class="res-tab-content">
                             <div id="res-headers-content" class="headers-display-list"></div>
                         </div>
                     </div>
+                </div>
+
+                <!-- Response Variables Panel -->
+                <div id="response-vars-panel" class="response-vars-panel hidden">
+                    <div class="response-vars-header" id="response-vars-toggle">
+                        <h3>🔗 Response Variables</h3>
+                        <span class="toggle-arrow">▼</span>
+                    </div>
+                    <div id="response-vars-content" class="response-vars-content">
+                        <p class="modal-hint">Use <code>{{response.path}}</code> in your next request to chain values.</p>
+                        <div id="response-vars-list" class="response-vars-list"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- WEBSOCKET TESTING SECTION -->
+            <section id="ws-section" class="ws-section">
+                <h2>WebSocket Testing</h2>
+                <div class="ws-controls">
+                    <input type="text" id="ws-url-input" class="url-input" placeholder="wss://echo.websocket.org">
+                    <button id="ws-connect-btn" class="btn primary">Connect</button>
+                    <button id="ws-disconnect-btn" class="btn danger" disabled>Disconnect</button>
+                    <span id="ws-status" class="ws-status disconnected">● Disconnected</span>
+                </div>
+                <div class="ws-message-controls">
+                    <input type="text" id="ws-message-input" class="url-input" placeholder="Type a message..." disabled>
+                    <button id="ws-send-btn" class="btn primary" disabled>Send</button>
+                </div>
+                <div id="ws-messages" class="ws-messages">
+                    <p class="empty-state">Connect to a WebSocket server to start messaging.</p>
                 </div>
             </section>
         </main>
@@ -219,6 +258,10 @@
                 <input type="text" id="save-request-name" class="key-value-input full-width" placeholder="e.g., Get All Users">
                 <label for="save-collection-select" style="margin-top: 1rem; display: block;">Collection</label>
                 <select id="save-collection-select" class="method-select full-width"></select>
+                <label for="save-folder-select" style="margin-top: 1rem; display: block;">Folder (optional)</label>
+                <select id="save-folder-select" class="method-select full-width">
+                    <option value="">(Root of collection)</option>
+                </select>
             </div>
             <div class="modal-footer">
                 <button id="confirm-save-btn" class="btn primary">Save</button>
