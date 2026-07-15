@@ -19,13 +19,13 @@ router.post('/', async (req, res) => {
   try {
     const startTime = Date.now();
 
-    // 2. Prepare fetch options
+    // Setup the basic request options
     const fetchOptions = {
       method: requestMethod,
       headers: headers || {},
     };
 
-    // 3. Attach body if the HTTP method allows it
+    // Only add a body if the method is not GET or HEAD
     if (!['GET', 'HEAD'].includes(requestMethod) && body) {
       if (bodyType === 'form-data' && typeof body === 'object') {
         const formData = new FormData();
@@ -34,7 +34,7 @@ router.post('/', async (req, res) => {
         }
         fetchOptions.body = formData;
         
-        // Remove Content-Type header if user provided it, let fetch set boundary automatically
+        // Remove Content-Type header so fetch can set the boundary itself
         const cTypeKey = Object.keys(fetchOptions.headers).find(k => k.toLowerCase() === 'content-type');
         if (cTypeKey && fetchOptions.headers[cTypeKey].includes('multipart/form-data')) {
             delete fetchOptions.headers[cTypeKey];
@@ -44,14 +44,14 @@ router.post('/', async (req, res) => {
       }
     }
 
-    // 4. Forward the request
+    // Send the actual request to the target URL
     const response = await fetch(url, fetchOptions);
     
-    // 5. Calculate request time
+    // Calculate total response time
     const endTime = Date.now();
     const time = `${endTime - startTime} ms`;
 
-    // 6. Calculate response size
+    // Get response size and format it nicely
     const responseBuffer = await response.arrayBuffer();
     const sizeInBytes = responseBuffer.byteLength;
     
@@ -64,23 +64,24 @@ router.post('/', async (req, res) => {
       size = `${(sizeInBytes / (1024 * 1024)).toFixed(2)} MB`;
     }
 
-    // Parse response body
+    // Parse response body safely
     const textDecoder = new TextDecoder('utf-8');
     const responseText = textDecoder.decode(responseBuffer);
     let responseBody;
     try {
+      // Try to parse as JSON, fallback to plain text if it fails
       responseBody = JSON.parse(responseText);
     } catch (e) {
       responseBody = responseText;
     }
 
-    // Extract headers
+    // Extract all headers from the response
     const responseHeaders = {};
     response.headers.forEach((value, key) => {
       responseHeaders[key] = value;
     });
 
-    // 7. Return standard format
+    // Return the final data back to the frontend
     res.status(200).json({
       status: response.status,
       statusText: response.statusText,
