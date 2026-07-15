@@ -186,6 +186,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // =============================================
     // 4. Dark Mode
     // =============================================
+    // Apply dark or light theme to the whole page
     function applyTheme(theme) {
         if (theme === 'dark') {
             document.body.classList.add('dark');
@@ -381,7 +382,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return result;
     }
 
-    /** Replace {{VAR}} and {{response.path}} placeholders */
+    // Replace variables like {{url}} with their actual saved values
     function replaceVariables(str) {
         if (!str || typeof str !== 'string') return str;
         const vars = loadFromStorage(STORAGE_KEYS.ENV_VARS) || [];
@@ -516,6 +517,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return headers;
     }
 
+    // Get the selected body type and its data before sending request
     function getRequestBodyData() {
         const type = document.querySelector('input[name="body-type"]:checked').value;
         let body = null;
@@ -525,6 +527,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const jsonText = document.getElementById('body-json-textarea').value.trim();
             if (jsonText) {
                 try {
+                    // Check if the user entered valid JSON before we send the request
                     JSON.parse(jsonText);
                     body = jsonText;
                 } catch (e) {
@@ -607,6 +610,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // =============================================
     // 12. Response Rendering Helpers
     // =============================================
+    // Update the UI with the response data (status, time, size, body)
     function renderResponseUI(data) {
         responseSection.classList.remove('hidden');
 
@@ -623,6 +627,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentResponseText = JSON.stringify(data.body, null, 2);
             } else {
                 try {
+                    // Try to format the response as pretty JSON if possible
                     parsedBody = JSON.parse(data.body);
                     currentResponseText = JSON.stringify(parsedBody, null, 2);
                 } catch {
@@ -668,6 +673,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Show a nice error message instead of crashing the app when request fails
     function renderErrorUI(errorMessage) {
         responseSection.classList.remove('hidden');
 
@@ -690,6 +696,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return loadFromStorage(STORAGE_KEYS.HISTORY) || [];
     }
 
+    // Save the request details so the user can see it in history later
     function addHistoryItem(method, url) {
         const history = getHistory();
         const item = {
@@ -755,6 +762,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return loadFromStorage(STORAGE_KEYS.COLLECTIONS) || [];
     }
 
+    // Save all collections to local storage
     function saveCollections(collections) {
         saveToStorage(STORAGE_KEYS.COLLECTIONS, collections);
     }
@@ -1296,6 +1304,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // =============================================
     // 17. Export Collections
     // =============================================
+    // Export all saved collections into a JSON file for the user to download
     function exportCollections() {
         const collections = getCollections();
         if (collections.length === 0) {
@@ -1437,6 +1446,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // =============================================
     // 19. Request Execution Logic
     // =============================================
+    // Build the final request object from all user inputs before sending it
     async function handleSendRequest() {
         clearErrors();
         const method = methodSelect.value;
@@ -1491,7 +1501,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Save to history
         addHistoryItem(method, urlInput.value.trim());
 
-        // Trigger Loading State
+        // Disable the send button and show a loading spinner while request is running
         sendButton.disabled = true;
         sendButton.innerHTML = '<i data-lucide="loader-2" class="icon-sm spinner"></i> <span>Sending...</span>';
         if (window.lucide) window.lucide.createIcons({ root: sendButton });
