@@ -18,7 +18,7 @@
     <header id="app-header">
         <div class="header-left">
             <div class="logo" title="Testium">
-                <div class="testium-icon">&gt;_</div>
+                <div class="testium-icon"><i data-lucide="zap" class="icon-sm" style="color: var(--accent); fill: var(--accent);"></i> Testium</div>
             </div>
             <div class="header-title">
                 <h1>Testium</h1>
@@ -81,12 +81,27 @@
 
             <!-- Get Started Card -->
             <div class="sidebar-section sidebar-bottom-card">
-                <div class="get-started-card" id="sidebar-get-started">
-                    <i data-lucide="rocket" class="get-started-icon"></i>
+                <div class="get-started-card" id="sidebar-get-started" style="border: 1px solid var(--accent); background: rgba(34, 197, 94, 0.05);">
+                    <i data-lucide="rocket" class="get-started-icon" style="color: var(--accent);"></i>
                     <h4>Quick Start</h4>
                     <p>New to Testium? Check out the guide to learn everything.</p>
-                    <button class="sidebar-btn" id="sidebar-manual-btn">View Guide</button>
+                    <button class="sidebar-btn" id="sidebar-manual-btn" style="color: var(--text-primary); border-color: var(--accent);">View Guide</button>
                 </div>
+            </div>
+            <div class="sidebar-section sidebar-bottom-card" style="margin-top: 1rem;">
+                <div class="get-started-card" id="sidebar-free-api" style="border: 1px solid var(--accent); background: rgba(34, 197, 94, 0.05);">
+                    <i data-lucide="box" class="get-started-icon" style="color: var(--accent);"></i>
+                    <h4>Free APIs</h4>
+                    <p>Explore free APIs to test and build amazing things.</p>
+                    <button class="sidebar-btn" id="sidebar-free-apis-btn" style="color: var(--text-primary); border-color: var(--accent);">Explore Now</button>
+                </div>
+            </div>
+
+            <div class="sidebar-socials" style="display: flex; gap: 1rem; padding: 1rem; justify-content: flex-start; margin-top: auto; margin-bottom: 1rem;">
+                <a href="#" style="color: var(--text-muted);"><i data-lucide="github" class="icon-sm"></i></a>
+                <a href="#" style="color: var(--text-muted);"><i data-lucide="twitter" class="icon-sm"></i></a>
+                <a href="#" style="color: var(--text-muted);"><i data-lucide="monitor" class="icon-sm"></i></a>
+                <a href="#" style="color: var(--text-muted);"><i data-lucide="settings" class="icon-sm"></i></a>
             </div>
         </aside>
 
@@ -273,20 +288,31 @@
 
             <!-- NO RESPONSE PLACEHOLDER / WELCOME CARD -->
             <section id="no-response-section" class="no-response-section">
-                <div class="welcome-card" id="welcome-card">
-                    <div class="welcome-header">
-                        <span class="welcome-emoji">👋</span>
-                        <h3>Welcome to Testium</h3>
+                <div class="empty-state-split" id="welcome-card">
+                    <!-- Left Side: Astronaut -->
+                    <div class="empty-state-image-container">
+                        <img src="assets/astronaut.png" alt="Astronaut floating over a green moon" />
+                        <h3><i data-lucide="zap" class="icon-sm" style="color: var(--accent); fill: var(--accent);"></i> No response yet</h3>
+                        <p>Enter a URL and click <strong style="color: var(--accent);">Send</strong><br>to see the response here.</p>
                     </div>
-                    <p>Ready to test your first API?</p>
-                    <ul class="welcome-list">
-                        <li><i data-lucide="check-circle-2" class="icon-sm"></i> Read the Quick Start Guide</li>
-                        <li><i data-lucide="check-circle-2" class="icon-sm"></i> Try one of the Free APIs</li>
-                        <li><i data-lucide="check-circle-2" class="icon-sm"></i> Build your own request</li>
-                    </ul>
-                    <div class="welcome-actions">
-                        <button id="welcome-guide-btn" class="btn secondary">Open Guide</button>
-                        <button id="welcome-apis-btn" class="btn primary">Explore Free APIs</button>
+                    
+                    <!-- Right Side: Free APIs Card -->
+                    <div class="welcome-card">
+                        <div class="welcome-header">
+                            <h4><i data-lucide="rocket" class="icon-sm" style="color: var(--accent);"></i> Need something to test?</h4>
+                        </div>
+                        <p>Try one of our free APIs.</p>
+                        
+                        <div class="welcome-card-icons">
+                            <div class="welcome-icon-box"><i data-lucide="box" class="icon-md" style="color: var(--accent);"></i></div>
+                            <div class="welcome-icon-box"><i data-lucide="file-json" class="icon-md" style="color: var(--warning);"></i></div>
+                            <div class="welcome-icon-box"><i data-lucide="cloud" class="icon-md" style="color: var(--info);"></i></div>
+                            <div class="welcome-icon-box"><i data-lucide="activity" class="icon-md" style="color: var(--error);"></i></div>
+                        </div>
+                        
+                        <div class="welcome-actions">
+                            <button id="welcome-apis-btn" class="btn outline-accent">Explore Free APIs &rarr;</button>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -312,13 +338,14 @@
             </section>
         </main>
 
-        <!-- MANUAL / HELP PANEL (Quick Start Guide) -->
-        <aside id="manual-panel" class="manual-panel hidden">
-            <div class="manual-panel-header">
-                <h3><i data-lucide="book-open" class="icon-sm"></i> Quick Start Guide</h3>
+    <!-- MANUAL / HELP PANEL MODAL -->
+    <div id="manual-panel" class="modal-overlay hidden">
+        <div class="modal modal-lg">
+            <div class="modal-header">
+                <h2><i data-lucide="book-open" class="icon-sm"></i> Quick Start Guide</h2>
                 <button id="manual-close-btn" class="icon-btn" title="Close Guide"><i data-lucide="x" class="icon-sm"></i></button>
             </div>
-            <div class="manual-panel-body" style="padding: 1rem; overflow-y: auto; height: calc(100% - 60px);">
+            <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
                 <div class="guide-section">
                     <h4>What is Testium?</h4>
                     <p>Testium is a lightweight tool to test APIs. You can send requests, view responses, and organize your work without any complex setup.</p>
@@ -352,7 +379,8 @@
                     <p>After sending, the response will appear below. You can see the status code, time, size, headers, and formatted JSON body.</p>
                 </div>
             </div>
-        </aside>
+        </div>
+    </div>
     </div>
 
     <!-- TOAST CONTAINER -->

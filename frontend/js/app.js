@@ -154,16 +154,18 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             manualPanel.classList.toggle('hidden');
         }
-        saveToStorage('manualClosed', manualPanel.classList.contains('hidden'));
     }
 
     if (helpBtn) helpBtn.addEventListener('click', toggleManual);
     if (manualCloseBtn) manualCloseBtn.addEventListener('click', toggleManual);
     if (sidebarManualBtn) sidebarManualBtn.addEventListener('click', () => toggleManual(true));
-
-    if (loadFromStorage('manualClosed') !== true) {
-        if (manualPanel) manualPanel.classList.remove('hidden');
+    
+    if (manualPanel) {
+        manualPanel.addEventListener('click', (e) => {
+            if (e.target === manualPanel) toggleManual();
+        });
     }
+
 
     function showError(element, message) {
         if (element) element.classList.add('input-error');
@@ -1559,6 +1561,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const freeApiClose = document.getElementById('free-api-close');
     const welcomeGuideBtn = document.getElementById('welcome-guide-btn');
     const welcomeApisBtn = document.getElementById('welcome-apis-btn');
+    const sidebarFreeApisBtn = document.getElementById('sidebar-free-apis-btn');
     const useApiBtns = document.querySelectorAll('.use-api-btn');
 
     function openFreeApiModal() {
@@ -1571,6 +1574,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (freeApiBtn) freeApiBtn.addEventListener('click', openFreeApiModal);
     if (freeApiClose) freeApiClose.addEventListener('click', closeFreeApiModal);
     if (welcomeApisBtn) welcomeApisBtn.addEventListener('click', openFreeApiModal);
+    if (sidebarFreeApisBtn) sidebarFreeApisBtn.addEventListener('click', openFreeApiModal);
     if (welcomeGuideBtn) welcomeGuideBtn.addEventListener('click', () => toggleManual(true));
 
     if (freeApiModal) {
