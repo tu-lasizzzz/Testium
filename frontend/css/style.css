@@ -2137,3 +2137,160 @@ body.dark .testium-icon {
     color: var(--accent);
     border: 1px solid var(--border-color);
 }
+
+/* =============================================
+   NEW UI: Welcome Card & Free APIs
+   ============================================= */
+.welcome-card {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    text-align: center;
+    max-width: 450px;
+    margin: 0 auto;
+    box-shadow: var(--shadow-sm);
+}
+.welcome-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+.welcome-emoji {
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+}
+.welcome-card h3 {
+    font-size: 1.25rem;
+    color: var(--text-primary);
+}
+.welcome-card p {
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+}
+.welcome-list {
+    list-style: none;
+    text-align: left;
+    margin-bottom: 2rem;
+    padding: 0 1rem;
+}
+.welcome-list li {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+.welcome-list li i {
+    color: var(--success);
+}
+.welcome-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+/* Free APIs Grid */
+.api-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+.api-card {
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.api-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+.api-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.api-card-header h3 {
+    font-size: 1.1rem;
+    color: var(--text-primary);
+}
+.api-card-desc {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    flex-grow: 1;
+}
+.api-card-endpoint {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    padding: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    overflow-x: hidden;
+}
+.api-card-endpoint code {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-family: monospace;
+    color: var(--text-primary);
+}
+.use-api-btn {
+    width: 100%;
+    justify-content: center;
+}
+
+/* Beginner Tips */
+.beginner-tips {
+    background-color: var(--info-bg);
+    border: 1px solid var(--info);
+    border-radius: var(--radius-md);
+    padding: 1.25rem;
+}
+.beginner-tips h4 {
+    color: var(--info);
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.beginner-tips ul {
+    margin-left: 1.5rem;
+    color: var(--text-primary);
+    font-size: 0.85rem;
+}
+.beginner-tips li {
+    margin-bottom: 0.25rem;
+}
+
+/* Guide Section */
+.guide-section {
+    margin-bottom: 1.25rem;
+}
+.guide-section h4 {
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+    font-size: 0.95rem;
+}
+.guide-section p {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    line-height: 1.4;
+}
+.guide-section code {
+    background-color: var(--bg-primary);
+    padding: 0.1rem 0.3rem;
+    border-radius: 4px;
+    font-family: monospace;
+}

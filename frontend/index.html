@@ -26,6 +26,9 @@
             </div>
         </div>
         <div class="header-right">
+            <button id="free-apis-btn" class="header-btn" title="Explore Free APIs">
+                <i data-lucide="globe" class="icon-sm"></i> <span>Free APIs</span>
+            </button>
             <button id="help-btn" class="header-btn" title="Quick Start Guide">
                 <i data-lucide="book-open" class="icon-sm"></i> <span>Help</span>
             </button>
@@ -268,12 +271,23 @@
                 </div>
             </section>
 
-            <!-- NO RESPONSE PLACEHOLDER -->
+            <!-- NO RESPONSE PLACEHOLDER / WELCOME CARD -->
             <section id="no-response-section" class="no-response-section">
-                <div class="no-response-content">
-                    <i data-lucide="inbox" class="no-response-icon"></i>
-                    <h3>No response yet</h3>
-                    <p>Enter a URL and click <strong>Send</strong> to see the response here.</p>
+                <div class="welcome-card" id="welcome-card">
+                    <div class="welcome-header">
+                        <span class="welcome-emoji">👋</span>
+                        <h3>Welcome to Testium</h3>
+                    </div>
+                    <p>Ready to test your first API?</p>
+                    <ul class="welcome-list">
+                        <li><i data-lucide="check-circle-2" class="icon-sm"></i> Read the Quick Start Guide</li>
+                        <li><i data-lucide="check-circle-2" class="icon-sm"></i> Try one of the Free APIs</li>
+                        <li><i data-lucide="check-circle-2" class="icon-sm"></i> Build your own request</li>
+                    </ul>
+                    <div class="welcome-actions">
+                        <button id="welcome-guide-btn" class="btn secondary">Open Guide</button>
+                        <button id="welcome-apis-btn" class="btn primary">Explore Free APIs</button>
+                    </div>
                 </div>
             </section>
 
@@ -298,53 +312,44 @@
             </section>
         </main>
 
-        <!-- MANUAL / HELP PANEL -->
+        <!-- MANUAL / HELP PANEL (Quick Start Guide) -->
         <aside id="manual-panel" class="manual-panel hidden">
             <div class="manual-panel-header">
                 <h3><i data-lucide="book-open" class="icon-sm"></i> Quick Start Guide</h3>
                 <button id="manual-close-btn" class="icon-btn" title="Close Guide"><i data-lucide="x" class="icon-sm"></i></button>
             </div>
-            <div class="manual-panel-body">
-                <div class="manual-section manual-section-expandable" data-expanded="true">
-                    <h4>Make Your First Request</h4>
-                    <p>Follow these steps to send an API request.</p>
-                    <div class="manual-steps">
-                        <div class="manual-step">
-                            <span class="step-number">1</span>
-                            <div><strong>Choose Method</strong><br>Select GET, POST, PUT, PATCH, or DELETE.</div>
-                        </div>
-                        <div class="manual-step">
-                            <span class="step-number">2</span>
-                            <div><strong>Enter URL</strong><br>Type the API endpoint URL.</div>
-                        </div>
-                        <div class="manual-step">
-                            <span class="step-number">3</span>
-                            <div><strong>Add Headers</strong><br>Set any required headers in the Headers tab.</div>
-                        </div>
-                        <div class="manual-step">
-                            <span class="step-number">4</span>
-                            <div><strong>Configure Auth</strong><br>Add authentication if needed in the Auth tab.</div>
-                        </div>
-                        <div class="manual-step">
-                            <span class="step-number">5</span>
-                            <div><strong>Set Body</strong><br>Add a request body for POST/PUT requests.</div>
-                        </div>
-                        <div class="manual-step">
-                            <span class="step-number">6</span>
-                            <div><strong>Click Send</strong><br>Execute the request and wait for the result.</div>
-                        </div>
-                        <div class="manual-step">
-                            <span class="step-number">7</span>
-                            <div><strong>Review Response</strong><br>Check status, headers, and the response body.</div>
-                        </div>
-                    </div>
+            <div class="manual-panel-body" style="padding: 1rem; overflow-y: auto; height: calc(100% - 60px);">
+                <div class="guide-section">
+                    <h4>What is Testium?</h4>
+                    <p>Testium is a lightweight tool to test APIs. You can send requests, view responses, and organize your work without any complex setup.</p>
                 </div>
-                <div class="manual-tip">
-                    <i data-lucide="lightbulb" class="icon-md" style="color: var(--warning);"></i>
-                    <div>
-                        <strong>Pro Tip</strong>
-                        <p>Try clicking one of the examples on the main workspace to see how it works instantly!</p>
-                    </div>
+                <div class="guide-section">
+                    <h4>Sending your first request</h4>
+                    <p>1. Select a method (e.g., GET).<br>2. Enter a URL (e.g., https://dummyjson.com/products).<br>3. Click <strong>Send</strong>.</p>
+                </div>
+                <div class="guide-section">
+                    <h4>Using Headers</h4>
+                    <p>Switch to the <strong>Headers</strong> tab to add custom headers (like <code>Content-Type: application/json</code>) if the API requires them.</p>
+                </div>
+                <div class="guide-section">
+                    <h4>Request Body</h4>
+                    <p>Use the <strong>Body</strong> tab for POST or PUT requests. Select JSON and type your data to send information to the server.</p>
+                </div>
+                <div class="guide-section">
+                    <h4>Authentication</h4>
+                    <p>If an API needs a token, go to the <strong>Auth</strong> tab. Choose Bearer Token or API Key and enter your credentials.</p>
+                </div>
+                <div class="guide-section">
+                    <h4>Collections</h4>
+                    <p>Click the <strong>Save</strong> button to store requests in Collections. Use folders to keep them organized in the sidebar.</p>
+                </div>
+                <div class="guide-section">
+                    <h4>Environment Variables</h4>
+                    <p>Click <strong>Environment</strong> in the header to save values (like a base URL). Use them by typing <code>{{VARIABLE_NAME}}</code> in your request.</p>
+                </div>
+                <div class="guide-section">
+                    <h4>Viewing Responses</h4>
+                    <p>After sending, the response will appear below. You can see the status code, time, size, headers, and formatted JSON body.</p>
                 </div>
             </div>
         </aside>
@@ -390,6 +395,98 @@
             </div>
             <div class="modal-footer">
                 <button id="confirm-save-btn" class="btn primary">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FREE APIS HUB MODAL -->
+    <div id="free-api-modal" class="modal-overlay hidden">
+        <div class="modal modal-lg">
+            <div class="modal-header">
+                <h2><i data-lucide="globe" class="icon-sm"></i> Free APIs Hub</h2>
+                <button id="free-api-close" class="icon-btn" title="Close"><i data-lucide="x" class="icon-sm"></i></button>
+            </div>
+            <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+                <p style="margin-bottom: 1.5rem; color: var(--text-secondary);">Practice API testing with these free public APIs. Click "Use Example" to try them out.</p>
+                
+                <div class="api-cards-grid">
+                    <!-- FreeAPI -->
+                    <div class="api-card">
+                        <div class="api-card-header">
+                            <h3>FreeAPI</h3>
+                            <a href="https://freeapi.app/" target="_blank" class="btn secondary btn-sm">Visit FreeAPI <i data-lucide="external-link" class="icon-sm" style="margin-left: 4px;"></i></a>
+                        </div>
+                        <p class="api-card-desc">A free open-source platform with many APIs that beginners can use for learning, frontend practice, backend development, and testing applications. Includes APIs for Random Jokes, Quotes, Users, Products, Weather, Movies, Todos, and Auth.</p>
+                        <div class="api-card-endpoint">
+                            <span class="method-badge get">GET</span>
+                            <code>https://api.freeapi.app/api/v1/public/randomjokes</code>
+                        </div>
+                        <button class="btn primary btn-sm use-api-btn" data-method="GET" data-url="https://api.freeapi.app/api/v1/public/randomjokes">Use Example</button>
+                    </div>
+
+                    <!-- DummyJSON -->
+                    <div class="api-card">
+                        <div class="api-card-header">
+                            <h3>DummyJSON</h3>
+                        </div>
+                        <p class="api-card-desc">Get mock data for products, recipes, users, and more. Great for frontend testing.</p>
+                        <div class="api-card-endpoint">
+                            <span class="method-badge get">GET</span>
+                            <code>https://dummyjson.com/products</code>
+                        </div>
+                        <button class="btn primary btn-sm use-api-btn" data-method="GET" data-url="https://dummyjson.com/products">Use Example</button>
+                    </div>
+
+                    <!-- JSONPlaceholder -->
+                    <div class="api-card">
+                        <div class="api-card-header">
+                            <h3>JSONPlaceholder</h3>
+                        </div>
+                        <p class="api-card-desc">Free fake API for testing and prototyping. Provides mock posts, comments, and albums.</p>
+                        <div class="api-card-endpoint">
+                            <span class="method-badge get">GET</span>
+                            <code>https://jsonplaceholder.typicode.com/posts</code>
+                        </div>
+                        <button class="btn primary btn-sm use-api-btn" data-method="GET" data-url="https://jsonplaceholder.typicode.com/posts">Use Example</button>
+                    </div>
+
+                    <!-- ReqRes -->
+                    <div class="api-card">
+                        <div class="api-card-header">
+                            <h3>ReqRes</h3>
+                        </div>
+                        <p class="api-card-desc">A hosted REST-API ready to respond to your AJAX requests. Good for testing auth and users.</p>
+                        <div class="api-card-endpoint">
+                            <span class="method-badge post">POST</span>
+                            <code>https://reqres.in/api/users</code>
+                        </div>
+                        <button class="btn primary btn-sm use-api-btn" data-method="POST" data-url="https://reqres.in/api/users" data-body='{"name": "morpheus", "job": "leader"}'>Use Example</button>
+                    </div>
+
+                    <!-- PokéAPI -->
+                    <div class="api-card">
+                        <div class="api-card-header">
+                            <h3>PokéAPI</h3>
+                        </div>
+                        <p class="api-card-desc">All the Pokémon data you'll ever need in one place.</p>
+                        <div class="api-card-endpoint">
+                            <span class="method-badge get">GET</span>
+                            <code>https://pokeapi.co/api/v2/pokemon/pikachu</code>
+                        </div>
+                        <button class="btn primary btn-sm use-api-btn" data-method="GET" data-url="https://pokeapi.co/api/v2/pokemon/pikachu">Use Example</button>
+                    </div>
+                </div>
+
+                <div class="beginner-tips">
+                    <h4>💡 Beginner Tips</h4>
+                    <ul>
+                        <li>Start with a simple GET request.</li>
+                        <li>Check the response status code after every request.</li>
+                        <li>Use Collections to save requests.</li>
+                        <li>Use Environment Variables instead of writing the same URL multiple times.</li>
+                        <li>Try public APIs before testing your own backend.</li>
+                    </ul>
+                </div>
             </div>
         </div>
     </div>

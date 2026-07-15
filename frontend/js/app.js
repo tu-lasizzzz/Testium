@@ -1552,8 +1552,77 @@ document.addEventListener('DOMContentLoaded', () => {
     sendButton.addEventListener('click', handleSendRequest);
 
     // =============================================
-    // 20. Initialize on Load
+    // 20. Free APIs Hub & Welcome Card
+    // =============================================
+    const freeApiModal = document.getElementById('free-api-modal');
+    const freeApiBtn = document.getElementById('free-apis-btn');
+    const freeApiClose = document.getElementById('free-api-close');
+    const welcomeGuideBtn = document.getElementById('welcome-guide-btn');
+    const welcomeApisBtn = document.getElementById('welcome-apis-btn');
+    const useApiBtns = document.querySelectorAll('.use-api-btn');
+
+    function openFreeApiModal() {
+        if (freeApiModal) freeApiModal.classList.remove('hidden');
+    }
+    function closeFreeApiModal() {
+        if (freeApiModal) freeApiModal.classList.add('hidden');
+    }
+
+    if (freeApiBtn) freeApiBtn.addEventListener('click', openFreeApiModal);
+    if (freeApiClose) freeApiClose.addEventListener('click', closeFreeApiModal);
+    if (welcomeApisBtn) welcomeApisBtn.addEventListener('click', openFreeApiModal);
+    if (welcomeGuideBtn) welcomeGuideBtn.addEventListener('click', () => toggleManual(true));
+
+    if (freeApiModal) {
+        freeApiModal.addEventListener('click', (e) => {
+            if (e.target === freeApiModal) closeFreeApiModal();
+        });
+    }
+
+    useApiBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const method = btn.getAttribute('data-method');
+            const url = btn.getAttribute('data-url');
+            const body = btn.getAttribute('data-body');
+
+            methodSelect.value = method;
+            urlInput.value = url;
+            clearErrors();
+
+            if (body) {
+                document.querySelector('input[name="body-type"][value="json"]').checked = true;
+                document.querySelector('input[name="body-type"][value="json"]').dispatchEvent(new Event('change'));
+                document.getElementById('body-json-textarea').value = JSON.stringify(JSON.parse(body), null, 2);
+            } else {
+                document.querySelector('input[name="body-type"][value="none"]').checked = true;
+                document.querySelector('input[name="body-type"][value="none"]').dispatchEvent(new Event('change'));
+            }
+
+            closeFreeApiModal();
+            document.querySelector('main').scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    });
+
+    function checkEmptyState() {
+        const collections = getCollections();
+        const noResponseSection = document.getElementById('no-response-section');
+        // Only show welcome card if no response is visible and no collections exist
+        if (collections.length === 0 && responseSection.classList.contains('hidden') && noResponseSection) {
+            noResponseSection.classList.remove('hidden');
+        } else if (noResponseSection && collections.length > 0 && responseSection.classList.contains('hidden')) {
+             noResponseSection.classList.remove('hidden');
+             const welcomeCard = document.getElementById('welcome-card');
+             if(welcomeCard) {
+                 welcomeCard.innerHTML = `<div class="welcome-header"><i data-lucide="inbox" class="no-response-icon"></i><h3>No response yet</h3></div><p style="text-align:center;">Enter a URL and click <strong>Send</strong> to see the response here.</p>`;
+                 if (window.lucide) window.lucide.createIcons({ root: welcomeCard });
+             }
+        }
+    }
+
+    // =============================================
+    // 21. Initialize on Load
     // =============================================
     renderCollections();
     renderHistory();
+    checkEmptyState();
 });

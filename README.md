@@ -56,10 +56,18 @@ A lightweight browser-based API Testing Platform designed to run simply without 
 - Theme preference persisted in localStorage
 - Professional neutral dark tones (not pure black)
 
-### Quick Start Guide
-- Built-in Manual panel with 7-step getting started guide
-- Covers Request Builder, Auth, Environment Variables, Collections, History, Response Viewer, WebSocket
-- Toggleable via header button — opens as a side panel
+### Quick Start Guide & Beginner Workflow
+- Built-in Quick Start Guide accessible via Help button.
+- Clean, beginner-friendly explanations of HTTP methods, headers, authentication, and variables.
+- "Welcome Card" for first-time users guiding them to resources.
+- Easy to close and reopen, keeping UI clean.
+
+### Free APIs Hub
+- Built-in hub of recommended public APIs for beginners to practice testing.
+- Click "Use Example" to automatically populate the request builder without sending.
+- Includes [FreeAPI](https://freeapi.app/) as a highly recommended resource for practicing with public APIs (Mock data for users, products, weather, auth, etc.).
+- Includes other great free APIs like DummyJSON, JSONPlaceholder, ReqRes, and PokéAPI.
+- "Beginner Tips" section helps new developers learn best practices.
 
 ### Quick Examples
 - Pre-built example chips (GET /products, GET /users/1, POST /products/add, DELETE /products/1)
