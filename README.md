@@ -1,4 +1,4 @@
-# Postman Lite
+# Testium
 
 A lightweight browser-based API Testing Platform designed to run simply without heavy frameworks or databases. All data is persisted using **localStorage**.
 
@@ -14,94 +14,107 @@ A lightweight browser-based API Testing Platform designed to run simply without 
 - **Request Body:** JSON, Raw Text, Form Data, x-www-form-urlencoded
 
 ### Response Viewer
-- **Status Badge:** Color-coded status code display (green for 2xx, red for errors)
+- **Status Badge:** Color-coded by status class (2xx green, 3xx blue, 4xx amber, 5xx red)
 - **Timing & Size:** Response time in ms and payload size
-- **Body Tab:** Auto-detects and pretty-prints JSON, preserves raw text
-- **Headers Tab:** Scrollable key-value display of response headers
-- **Loading State:** Spinner overlay with disabled send button
+- **Pretty Tab:** Auto-detects and pretty-prints JSON
+- **Headers Tab:** Key-value display of response headers
+- **Copy Response:** One-click copy to clipboard
+- **Search & Highlight:** Find text in response body with match count
 
 ### Collections & Folders
 - Create named collections to organize requests
-- Create folders and sub-folders inside collections (up to 2 levels of nesting)
+- Create folders and sub-folders (up to 2 levels)
 - Save the current request builder state into any collection or folder
-- Load any saved request back into the builder with one click
+- Load saved requests with one click
 - Rename or delete collections and folders
-- Delete individual saved requests
-- Expand/collapse collections and folders in the sidebar
-
-### Request Duplication
-- Duplicate any saved request with one click (📋 button)
-- Automatically named "Copy of [original name]"
-- The duplicate is independent — edit it without affecting the original
+- Request duplication with 📋 button
 
 ### Request History
-- Automatically records the last 20 requests sent
+- Automatically records the last 20 requests
 - Each entry shows HTTP method, URL, and relative timestamp
-- Click any history item to restore the method and URL into the builder
+- Click any history item to restore into the builder
 - Clear all history with one click
 
 ### Environment Variables
-- Create reusable key-value variables (e.g., `BASE_URL = https://dummyjson.com`)
-- Use `{{VARIABLE_NAME}}` placeholders in URL, headers, JSON body, raw text body, form data, and URL-encoded fields
-- Variables are resolved at send time — missing variables keep their `{{placeholder}}` unchanged
+- Create reusable key-value variables
+- Use `{{VARIABLE_NAME}}` placeholders in URL, headers, and body
+- Variables resolved at send time
 
 ### Request Chaining
-- After each successful response, the JSON body is stored in memory
-- Use `{{response.path.to.value}}` to reference values from the last response in your next request
-- Supports nested properties via dot notation (e.g., `{{response.user.id}}`)
-- The **Response Variables** panel shows all available paths and values
-- Click any variable to copy the placeholder to your clipboard
-
-### Response Search & Filtering
-- Search bar above the response body lets you search for any text
-- Matching results are highlighted with a yellow `<mark>`
-- A match count badge shows how many results were found
-- Works for both JSON and plain text responses
+- JSON response stored in memory after each request
+- Use `{{response.path.to.value}}` in the next request
+- Response Variables panel shows all available paths
+- Click to copy placeholder to clipboard
 
 ### WebSocket Testing
-- Enter a WebSocket URL (`ws://` or `wss://`) and connect
+- Enter WebSocket URL and connect/disconnect
 - Send and receive messages in real-time
-- Messages are displayed with timestamps and direction indicators (▲ sent, ▼ received)
-- Connection status indicator (Connected / Disconnected / Error)
-- Handles connection errors and unexpected disconnects gracefully
+- Timestamped message log with direction indicators
 
 ### Dark Mode
-- Toggle between Light and Dark themes with one click
-- Theme preference is saved to localStorage and applied automatically on page load
-- All UI components remain fully readable in both modes
+- Toggle between Light and Dark themes
+- Theme preference persisted in localStorage
+- Professional neutral dark tones (not pure black)
+
+### Quick Start Guide
+- Built-in Manual panel with 7-step getting started guide
+- Covers Request Builder, Auth, Environment Variables, Collections, History, Response Viewer, WebSocket
+- Toggleable via header button — opens as a side panel
+
+### Quick Examples
+- Pre-built example chips (GET /products, GET /users/1, POST /products/add, DELETE /products/1)
+- Click to auto-populate the request builder
+- POST examples also set JSON body and switch to Body tab
+
+### Toast Notifications
+- Lightweight toast messages for all actions
+- Types: success (✓), error (✕), info (ℹ), warning (⚠)
+- Auto-dismiss after 3 seconds with slide animation
+- Replaces all `alert()` dialogs
 
 ### Export Collections
-- One-click export of all collections as a downloadable JSON file
-- Includes collection names, folders, all saved requests, and export metadata
+- One-click export as downloadable JSON file
 
 ---
 
-## Technologies Used
+## Design
 
-- **Frontend:** HTML, CSS (with CSS Custom Properties), Vanilla JavaScript
+- **Typography:** Inter (Google Fonts)
+- **Icons:** Lucide icon font
+- **Color Palette:** #2563EB primary, #16A34A success, #F59E0B warning, #DC2626 error
+- **Dark Mode:** Slate-based neutral dark (#0F172A → #1E293B → #334155)
+- **Animations:** Subtle fade-in, slide-in for panels, toast slide transitions
+- **Layout:** Fixed header + sidebar + main workspace + optional manual panel
+
+---
+
+## Technologies
+
+- **Frontend:** HTML, CSS (Custom Properties + Inter font), Vanilla JavaScript
 - **Backend:** Node.js, Express.js
 - **Storage:** Browser localStorage (no database)
+- **Icons:** Lucide (CDN)
 
 ---
 
 ## Project Structure
 
 ```
-lite-postman/
+testium/
 ├── backend/
 │   ├── routes/
-│   │   └── proxy.js          # Express proxy route
-│   ├── utils/                 # Utility modules
-│   ├── .env.example           # Environment template
+│   │   └── proxy.js
+│   ├── utils/
+│   ├── .env.example
 │   ├── .gitignore
 │   ├── package.json
-│   └── server.js              # Express server entry point
+│   └── server.js
 ├── frontend/
 │   ├── css/
-│   │   └── style.css          # All styles (light + dark themes via CSS variables)
+│   │   └── style.css
 │   ├── js/
-│   │   └── app.js             # All frontend logic
-│   └── index.html             # Main HTML page
+│   │   └── app.js
+│   └── index.html
 ├── .gitignore
 └── README.md
 ```
@@ -113,7 +126,7 @@ lite-postman/
 1. **Clone the repository:**
    ```bash
    git clone <repository-url>
-   cd lite-postman
+   cd testium
    ```
 
 2. **Install backend dependencies:**
@@ -133,7 +146,16 @@ lite-postman/
    ```
 
 5. **Open the frontend:**
-   Open `frontend/index.html` directly in your web browser.
+   Open `frontend/index.html` in your browser.
+
+---
+
+## Keyboard Shortcuts
+
+| Action | Shortcut |
+|--------|----------|
+| Send Message (WebSocket) | Enter |
+| Close Modal | Click outside |
 
 ---
 
@@ -142,77 +164,81 @@ lite-postman/
 ```
 User fills builder → Clicks "Send"
        ↓
-replaceVariables() resolves {{VAR}} and {{response.*}} placeholders
+replaceVariables() resolves {{VAR}} and {{response.*}}
        ↓
 Validation (URL format, JSON syntax)
        ↓
-addHistoryItem() saves method + URL to localStorage
+addHistoryItem() saves to localStorage
        ↓
 Frontend POSTs to http://localhost:5000/proxy
        ↓
-Express proxy forwards request to target URL
+Express proxy forwards to target URL
        ↓
 Proxy returns {status, statusText, headers, body, time, size}
        ↓
-renderResponseUI() displays results + stores response for chaining
+renderResponseUI() displays results + toast notification
+       ↓
+lastResponseData stored for chaining
 ```
 
 ---
 
 ## localStorage Keys
 
-| Key                    | Structure |
-|------------------------|-----------|
-| `collections`          | Array of `{ id, name, requests: [...], folders: [{ id, name, requests, folders }] }` |
-| `requestHistory`       | Array of `{ id, method, url, timestamp }` (max 20) |
-| `environmentVariables` | Array of `{ key, value }` |
-| `theme`                | `"light"` or `"dark"` |
+| Key | Structure |
+|-----|-----------|
+| `collections` | `[{ id, name, requests: [...], folders: [{ id, name, requests, folders }] }]` |
+| `requestHistory` | `[{ id, method, url, timestamp }]` (max 20) |
+| `environmentVariables` | `[{ key, value }]` |
+| `theme` | `"light"` or `"dark"` |
+| `manualDismissed` | `true` or `false` |
 
 ---
 
 ## Testing Guide
 
-### Request Chaining
-1. Send GET to `https://jsonplaceholder.typicode.com/posts/1`.
-2. See the **Response Variables** panel show available paths.
-3. Click `{{response.userId}}` to copy it.
-4. In the URL, type `https://jsonplaceholder.typicode.com/users/{{response.userId}}`.
-5. Send — it resolves to `/users/1` and returns the user data.
+### Quick Examples
+1. Click any example chip below the URL bar (e.g., "GET /products").
+2. Verify the method and URL populate automatically.
+3. For POST examples, verify the JSON body is set and the Body tab is active.
+4. Click Send to execute.
 
-### WebSocket Testing
-1. Enter `wss://echo.websocket.events` and click **Connect**.
-2. Observe the status change to **Connected**.
-3. Type a message and click **Send** — see it echoed back.
-4. Click **Disconnect** — observe graceful disconnect.
+### Toast Notifications
+1. Save a request → verify "Request saved" toast appears.
+2. Export collections → verify "Collections exported" toast.
+3. Save env vars → verify "Environment variables saved" toast.
+4. All toasts auto-dismiss after 3 seconds.
 
-### Response Search
-1. Send any request that returns JSON.
-2. Type a keyword in the search bar above the response body.
-3. Verify matches are highlighted in yellow with a count badge.
+### Manual Panel
+1. Click "Manual" in the header → verify side panel opens.
+2. Verify the 7-step getting started guide is visible.
+3. Click ✕ to close → verify panel closes.
+4. Click "View Manual" in the sidebar → verify panel reopens.
 
 ### Dark Mode
-1. Click **🌙 Dark Mode** in the header.
-2. Verify all UI elements switch to dark theme.
-3. Refresh the page — verify the theme persists.
+1. Click the dark mode button in the header.
+2. Verify the icon changes from moon to sun.
+3. Verify all UI elements are readable.
+4. Refresh → verify theme persists.
 
-### Collection Folders
-1. Create a collection → click 📁+ to add a folder.
-2. Expand the folder → click 📁+ inside to add a sub-folder.
-3. Save a request into a folder using the folder dropdown in the save modal.
+### Copy Response
+1. Send any request.
+2. Click "Copy" button in the response header bar.
+3. Paste in a text editor → verify the full response body is copied.
 
-### Request Duplication
-1. Save a request to a collection.
-2. Hover over it → click 📋 (duplicate).
-3. Verify "Copy of [name]" appears below the original.
+### Response Search
+1. Send a request that returns JSON.
+2. Click "Search" in the response header bar.
+3. Type a keyword → verify highlights and match count appear.
+4. Click ✕ to clear.
 
 ---
 
 ## Future Improvements
 
 - Import collections from JSON files
-- Drag-and-drop to reorder requests and move between folders
-- Multiple environment profiles (dev, staging, production)
+- Drag-and-drop to reorder requests
+- Multiple environment profiles
 - Response body diff comparison
 - Keyboard shortcuts for common actions
-- Request pre-scripts and test scripts
 - GraphQL query support

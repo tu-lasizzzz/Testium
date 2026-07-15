@@ -6,11 +6,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const urlInput = document.getElementById('url-input');
     const sendButton = document.getElementById('send-button');
     const validationMessage = document.getElementById('validation-message');
-    
+
     // Request Tabs
     const tabButtons = document.querySelectorAll('.tab-btn');
     const tabContents = document.querySelectorAll('.tab-content');
-    
+
     // Response Elements
     const responseSection = document.getElementById('response-section');
     const loadingOverlay = document.getElementById('loading-overlay');
@@ -19,11 +19,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const resSize = document.getElementById('res-size');
     const resBodyContent = document.getElementById('res-body-content');
     const resHeadersContent = document.getElementById('res-headers-content');
-    
+
     // Response Tabs
     const resTabButtons = document.querySelectorAll('.res-tab-btn');
     const resTabContents = document.querySelectorAll('.res-tab-content');
-    
+
     // Config Lists
     const paramsList = document.getElementById('params-list');
     const addParamBtn = document.getElementById('add-param-btn');
@@ -122,6 +122,49 @@ document.addEventListener('DOMContentLoaded', () => {
     // =============================================
     // 3. UI Utilities
     // =============================================
+    const toastContainer = document.getElementById('toast-container');
+    function showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        let iconName = 'check-circle';
+        if (type === 'error') iconName = 'alert-circle';
+        else if (type === 'warning') iconName = 'alert-triangle';
+        else if (type === 'info') iconName = 'info';
+        
+        toast.innerHTML = `<i data-lucide="${iconName}" class="icon-sm"></i> <span>${message}</span>`;
+        toastContainer.appendChild(toast);
+        if (window.lucide) window.lucide.createIcons({ root: toast });
+        
+        toast.offsetHeight; // reflow
+        toast.classList.add('show');
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
+    const manualPanel = document.getElementById('manual-panel');
+    const manualCloseBtn = document.getElementById('manual-close-btn');
+    const helpBtn = document.getElementById('help-btn');
+    const sidebarManualBtn = document.getElementById('sidebar-manual-btn');
+
+    function toggleManual(forceShow = false) {
+        if (forceShow === true) {
+            manualPanel.classList.remove('hidden');
+        } else {
+            manualPanel.classList.toggle('hidden');
+        }
+        saveToStorage('manualClosed', manualPanel.classList.contains('hidden'));
+    }
+
+    if (helpBtn) helpBtn.addEventListener('click', toggleManual);
+    if (manualCloseBtn) manualCloseBtn.addEventListener('click', toggleManual);
+    if (sidebarManualBtn) sidebarManualBtn.addEventListener('click', () => toggleManual(true));
+
+    if (loadFromStorage('manualClosed') !== true) {
+        if (manualPanel) manualPanel.classList.remove('hidden');
+    }
+
     function showError(element, message) {
         if (element) element.classList.add('input-error');
         validationMessage.textContent = message;
@@ -146,11 +189,12 @@ document.addEventListener('DOMContentLoaded', () => {
     function applyTheme(theme) {
         if (theme === 'dark') {
             document.body.classList.add('dark');
-            darkModeToggle.textContent = '☀ Light Mode';
+            darkModeToggle.innerHTML = '<i data-lucide="sun" class="icon-sm"></i> <span id="dark-mode-label">Light Mode</span>';
         } else {
             document.body.classList.remove('dark');
-            darkModeToggle.textContent = '🌙 Dark Mode';
+            darkModeToggle.innerHTML = '<i data-lucide="moon" class="icon-sm"></i> <span id="dark-mode-label">Dark Mode</span>';
         }
+        if (window.lucide) window.lucide.createIcons({ root: darkModeToggle });
     }
 
     function toggleDarkMode() {
@@ -193,26 +237,26 @@ document.addEventListener('DOMContentLoaded', () => {
     function createKeyValueRow(placeholderKey = 'Key', placeholderValue = 'Value', initialKey = '', initialValue = '') {
         const row = document.createElement('div');
         row.className = 'key-value-row';
-        
+
         const keyInput = document.createElement('input');
         keyInput.type = 'text';
         keyInput.className = 'key-value-input key-input';
         keyInput.placeholder = placeholderKey;
         keyInput.value = initialKey;
-        
+
         const valueInput = document.createElement('input');
         valueInput.type = 'text';
         valueInput.className = 'key-value-input value-input';
         valueInput.placeholder = placeholderValue;
         valueInput.value = initialValue;
-        
+
         const removeBtn = document.createElement('button');
         removeBtn.className = 'btn danger remove-param-btn';
         removeBtn.textContent = 'Remove';
-        
+
         removeBtn.addEventListener('click', () => row.remove());
         row.append(keyInput, valueInput, removeBtn);
-        
+
         return row;
     }
 
@@ -235,7 +279,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const selected = e.target.value;
         if (selected !== 'none') document.getElementById(`auth-${selected}-config`).classList.remove('hidden');
     });
-
     bodyTypeRadios.forEach(radio => {
         radio.addEventListener('change', (e) => {
             bodyConfigs.forEach(config => config.classList.add('hidden'));
@@ -290,6 +333,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (key) vars.push({ key, value });
         });
         saveToStorage(STORAGE_KEYS.ENV_VARS, vars);
+        showToast('Environment updated');
     }
 
     // =============================================
@@ -389,7 +433,7 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             el.addEventListener('click', () => {
                 // Copy the variable placeholder to clipboard
-                navigator.clipboard.writeText(`{{response.${item.path}}}`).catch(() => {});
+                navigator.clipboard.writeText(`{{response.${item.path}}}`).catch(() => { });
             });
             responseVarsList.appendChild(el);
         });
@@ -417,6 +461,23 @@ document.addEventListener('DOMContentLoaded', () => {
     // =============================================
     // 10. Request Builders
     // =============================================
+    document.querySelectorAll('.example-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+            methodSelect.value = chip.getAttribute('data-method');
+            urlInput.value = chip.getAttribute('data-url');
+            const bodyStr = chip.getAttribute('data-body');
+            
+            if (bodyStr) {
+                document.querySelector('input[name="body-type"][value="json"]').checked = true;
+                document.querySelector('input[name="body-type"][value="json"]').dispatchEvent(new Event('change'));
+                document.getElementById('body-json-textarea').value = JSON.stringify(JSON.parse(bodyStr), null, 2);
+            } else {
+                document.querySelector('input[name="body-type"][value="none"]').checked = true;
+                document.querySelector('input[name="body-type"][value="none"]').dispatchEvent(new Event('change'));
+            }
+        });
+    });
+
     function buildQueryString() {
         const params = new URLSearchParams();
         paramsList.querySelectorAll('.key-value-row').forEach(row => {
@@ -459,7 +520,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const type = document.querySelector('input[name="body-type"]:checked').value;
         let body = null;
         let isValid = true;
-        
+
         if (type === 'json') {
             const jsonText = document.getElementById('body-json-textarea').value.trim();
             if (jsonText) {
@@ -492,7 +553,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             body = params.toString() || null;
         }
-        
+
         return { body, type, isValid };
     }
 
@@ -548,12 +609,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // =============================================
     function renderResponseUI(data) {
         responseSection.classList.remove('hidden');
-        
+
         resStatus.textContent = `${data.status} ${data.statusText || ''}`.trim();
         resStatus.className = `badge ${data.status >= 200 && data.status < 300 ? 'success' : 'error'}`;
         resTime.textContent = data.time || 'N/A';
         resSize.textContent = data.size || 'N/A';
-        
+
         // Store response body for request chaining
         let parsedBody = null;
         if (data.body !== undefined && data.body !== null && data.body !== '') {
@@ -589,15 +650,15 @@ document.addEventListener('DOMContentLoaded', () => {
             for (const [key, value] of Object.entries(data.headers)) {
                 const row = document.createElement('div');
                 row.className = 'header-row';
-                
+
                 const keyEl = document.createElement('div');
                 keyEl.className = 'header-key';
                 keyEl.textContent = key;
-                
+
                 const valEl = document.createElement('div');
                 valEl.className = 'header-value';
                 valEl.textContent = value;
-                
+
                 row.appendChild(keyEl);
                 row.appendChild(valEl);
                 resHeadersContent.appendChild(row);
@@ -609,12 +670,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderErrorUI(errorMessage) {
         responseSection.classList.remove('hidden');
-        
+
         resStatus.textContent = 'ERROR';
         resStatus.className = 'badge error';
         resTime.textContent = '-';
         resSize.textContent = '-';
-        
+
         currentResponseText = errorMessage;
         resBodyContent.textContent = errorMessage;
         lastResponseData = null;
@@ -653,7 +714,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const now = new Date();
         const diffMs = now - date;
         const diffMins = Math.floor(diffMs / 60000);
-        
+
         if (diffMins < 1) return 'just now';
         if (diffMins < 60) return `${diffMins}m ago`;
         const diffHours = Math.floor(diffMins / 60);
@@ -1155,7 +1216,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function openSaveModal() {
         const collections = getCollections();
         if (collections.length === 0) {
-            alert('No collections exist. Please create a collection first.');
+            showToast('No collections exist. Please create a collection first.', 'warning');
             return;
         }
         saveCollectionSelect.innerHTML = '';
@@ -1197,7 +1258,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const collectionId = saveCollectionSelect.value;
         const folderId = saveFolderSelect.value;
         if (!name) {
-            alert('Please enter a request name.');
+            showToast('Please enter a request name.', 'warning');
             return;
         }
         const collections = getCollections();
@@ -1224,6 +1285,7 @@ document.addEventListener('DOMContentLoaded', () => {
         saveCollections(collections);
         renderCollections();
         saveModal.classList.add('hidden');
+        showToast('Request saved successfully');
     }
 
     saveRequestBtn.addEventListener('click', openSaveModal);
@@ -1237,12 +1299,12 @@ document.addEventListener('DOMContentLoaded', () => {
     function exportCollections() {
         const collections = getCollections();
         if (collections.length === 0) {
-            alert('No collections to export.');
+            showToast('No collections to export.', 'warning');
             return;
         }
         const exportData = {
             exportedAt: new Date().toISOString(),
-            source: 'Postman Lite',
+            source: 'Testium',
             collections: collections
         };
         const jsonStr = JSON.stringify(exportData, null, 2);
@@ -1251,7 +1313,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const a = document.createElement('a');
         a.href = url;
-        a.download = `postman-lite-collections-${Date.now()}.json`;
+        a.download = `testium-collections-${Date.now()}.json`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -1308,12 +1370,12 @@ document.addEventListener('DOMContentLoaded', () => {
     function wsConnect() {
         const url = wsUrlInput.value.trim();
         if (!url) {
-            alert('Please enter a WebSocket URL.');
+            showToast('Please enter a WebSocket URL.', 'warning');
             return;
         }
         // Validate URL format
         if (!url.startsWith('ws://') && !url.startsWith('wss://')) {
-            alert('Invalid WebSocket URL. Must start with ws:// or wss://');
+            showToast('Invalid WebSocket URL. Must start with ws:// or wss://', 'error');
             return;
         }
 
@@ -1379,18 +1441,18 @@ document.addEventListener('DOMContentLoaded', () => {
         clearErrors();
         const method = methodSelect.value;
         let url = urlInput.value.trim();
-        
+
         if (!url) return showError(urlInput, "URL cannot be empty.");
-        
+
         // Apply variable replacement (env vars + response chaining)
         url = replaceVariables(url);
-        
+
         try { new URL(url); } catch { return showError(urlInput, "Invalid URL format. Check your environment variables."); }
 
         const isGetOrQuery = ['GET', 'QUERY'].includes(method);
         const requestBodyData = getRequestBodyData();
-        if (!requestBodyData.isValid) return; 
-        
+        if (!requestBodyData.isValid) return;
+
         let finalBody = isGetOrQuery ? null : requestBodyData.body;
         const bodyType = isGetOrQuery ? 'none' : requestBodyData.type;
 
@@ -1431,24 +1493,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Trigger Loading State
         sendButton.disabled = true;
-        sendButton.textContent = 'Sending...';
+        sendButton.innerHTML = '<i data-lucide="loader-2" class="icon-sm spinner"></i> <span>Sending...</span>';
+        if (window.lucide) window.lucide.createIcons({ root: sendButton });
         responseSection.classList.add('hidden');
         loadingOverlay.classList.remove('hidden');
 
         const requestBody = { method, url: finalUrl, headers: finalHeaders, body: finalBody, bodyType };
         const proxyUrl = 'http://localhost:5000/proxy';
-        
+
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 15000);
 
         try {
             const response = await fetch(proxyUrl, {
-                method: 'POST', 
+                method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(requestBody),
                 signal: controller.signal
             });
-            
+
             clearTimeout(timeoutId);
 
             if (!response.ok) {
@@ -1456,18 +1519,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 const backendMsg = errorData.error || "Server unavailable or proxy failed.";
                 const details = errorData.details ? ` (${errorData.details})` : "";
                 renderErrorUI(`Proxy Error: ${backendMsg}${details}`);
+                showToast('Request failed', 'error');
             } else {
                 const responseData = await response.json();
                 renderResponseUI(responseData);
+                showToast('Request sent successfully');
             }
-            
+
         } catch (error) {
             clearTimeout(timeoutId);
             if (error.name === 'AbortError') renderErrorUI("Request timed out. The server took too long to respond.");
             else renderErrorUI("Network error. Please verify the backend proxy server is running.");
+            showToast('Request error', 'error');
         } finally {
             sendButton.disabled = false;
-            sendButton.textContent = 'Send';
+            sendButton.innerHTML = '<i data-lucide="send" class="icon-sm"></i> <span>Send</span>';
+            if (window.lucide) window.lucide.createIcons({ root: sendButton });
             loadingOverlay.classList.add('hidden');
         }
     }
