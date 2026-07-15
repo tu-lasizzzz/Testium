@@ -1,7 +1,7 @@
 {
-  "name": "postman-lite-backend",
+  "name": "testium-backend",
   "version": "1.0.0",
-  "description": "Backend for Postman Lite",
+  "description": "Backend for Testium",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
